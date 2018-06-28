@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.cad">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- 网络信息权限 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-feature android:name="android.hardware.camera"/>
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
+    <!-- 打开系统相册 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- 调用摄像头权限 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- sd卡读写权限 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+
+
+    <application
+        android:name=".base.MyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".activity.MainActivity"/>
+        <activity android:name=".activity.SystemSettingsActivity"/>
+        <activity android:name=".activity.AboutEquipmentActivity"/>
+        <activity android:name=".activity.ConventionalMaintenanceActivity"/>
+        <activity android:name=".activity.StartAppActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <!-- 开机启动 -->
+                <category android:name="android.intent.category.HOME"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".activity.WorkStatisticsActivity"/>
+        <activity android:name=".activity.CalibrationActivity">
+        </activity>
+        <activity android:name=".activity.WifiActivity">
+        </activity>
+        <activity android:name=".activity.FillingActivity">
+        </activity>
+        <activity android:name=".activity.FillingTwoActivity"/>
+        <activity android:name=".activity.FillingThreeActivity"/>
+        <activity android:name=".activity.MaintainOneActivity">
+        </activity>
+        <activity android:name=".activity.MaintainTwoActivity"/>
+        <activity android:name=".activity.MaintainThreeActivity"/>
+
+        <service android:name=".thread.SendService"/>
+
+        <activity android:name=".activity.StartAppOneActivity">
+        </activity>
+        <activity android:name=".activity.StartAppTwoActivity">
+        </activity>
+        <receiver
+            android:name=".activity.InitApkBroadCastReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.example.menutest02.MainActivity" >
+
+    <item
+        android:id="@+id/start"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="开放"/>
+    <item
+        android:id="@+id/wep"
+        android:orderInCategory="200"
+        android:showAsAction="never"
+        android:title="WEP"/>
+    <item
+        android:id="@+id/psk"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="WPA/WPA2 PSK"/>
+
+</menu>

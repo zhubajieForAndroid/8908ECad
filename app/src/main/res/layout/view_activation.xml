@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@mipmap/jihuo_bg"/>
+    <ImageView
+        android:id="@+id/info"
+        android:layout_marginTop="100dp"
+        android:layout_marginLeft="80dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <ImageView
+        android:id="@+id/load_image"
+        android:layout_marginTop="100dp"
+        android:layout_marginRight="115dp"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/equipment_id"
+        android:layout_marginBottom="30dp"
+        android:layout_marginRight="55dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:gravity="center"
+        android:textSize="30sp"
+        android:textColor="#ecc902"
+        android:layout_width="395dp"
+        android:layout_height="90dp"/>
+</RelativeLayout>

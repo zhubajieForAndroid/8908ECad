@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="677dp"
+              android:background="@mipmap/update_popovers"
+              android:layout_height="558dp">
+    <TextView
+        android:layout_marginTop="220dp"
+        android:layout_marginLeft="90dp"
+        android:text="更新内容:"
+        android:textStyle="bold"
+        android:textColor="#404040"
+        android:textSize="30sp"
+        android:id="@+id/updata_dialog_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:id="@+id/container"
+        android:layout_marginTop="300dp"
+        android:layout_marginLeft="110dp"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="120dp"/>
+    <LinearLayout
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
+        android:layout_width="550dp"
+        android:layout_height="wrap_content">
+        <Button
+            android:background="@mipmap/btn_update_2"
+            android:id="@+id/cancle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="76dp"/>
+        <Button
+            android:layout_marginLeft="100dp"
+            android:background="@mipmap/btn_update_1"
+            android:id="@+id/download"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="76dp"/>
+    </LinearLayout>
+
+</RelativeLayout>

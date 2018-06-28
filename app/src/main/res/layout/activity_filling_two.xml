@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_filling"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.cad.activity.FillingActivity">
+    <ImageView
+        android:id="@+id/add_bg"
+        android:src="@mipmap/bg_3_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <TextView
+        android:id="@+id/ratio_numbwe"
+        android:gravity="center"
+        android:layout_marginLeft="390dp"
+        android:layout_marginTop="505dp"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        android:textColor="#1b6ffa"
+        android:layout_width="400dp"
+        android:layout_height="100dp"/>
+    <ImageView
+        android:id="@+id/toobar_bg_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <include
+        android:id="@+id/topbarView"
+        layout="@layout/topbar_layout"/>
+
+</RelativeLayout>

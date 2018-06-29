@@ -37,6 +37,7 @@ import com.cad.widget.PassworldDialog;
 
 import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -82,6 +83,9 @@ public class StartAppTwoActivity extends BaseActivity implements View.OnClickLis
     private AddNewWifiDialog mWifiDialog;
     private boolean mIsYesData = false;
     private PassworldDialog mDialog;
+    private Timer mWifiScanTimer;
+    private ScanTimerTask mScanTimerTask;
+    private WifiAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +98,8 @@ public class StartAppTwoActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void initData() {
-
+        mAdapter = new WifiAdapter(this, mWifiList, mWifiUtils);
+        mWifiListview.setAdapter(mAdapter);
         mAnimation = AnimationUtils.loadAnimation(this, R.anim.refreshing_animation);
         LinearInterpolator lir = new LinearInterpolator();
         mAnimation.setInterpolator(lir);
@@ -149,6 +154,7 @@ public class StartAppTwoActivity extends BaseActivity implements View.OnClickLis
         });
         mWifiListview.setOnItemClickListener(this);
         mAboutSystemBack.setOnClickListener(this);
+        startScanWifiTask();
     }
 
     /**
@@ -157,12 +163,15 @@ public class StartAppTwoActivity extends BaseActivity implements View.OnClickLis
     private void scaleWifi() {
         if (mWifiUtils != null) {
             mWifiUtils.startScale();
-            mRefreshImage.startAnimation(mAnimation);
-            //获取烧苗结果
             mWifiList = mWifiUtils.getWifiList();
             if (mWifiList != null) {
-                WifiAdapter adapter = new WifiAdapter(StartAppTwoActivity.this, mWifiList, mWifiUtils);
-                mWifiListview.setAdapter(adapter);
+                MyApplication.getmHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mRefreshImage.startAnimation(mAnimation);
+                        mAdapter.updataWifiList(mWifiList);
+                    }
+                });
             }
         }
     }
@@ -268,14 +277,32 @@ public class StartAppTwoActivity extends BaseActivity implements View.OnClickLis
         startActivity(intent);
         finish();
     }
+    private void startScanWifiTask() {
+        if (mWifiScanTimer == null)
+            mWifiScanTimer = new Timer();
+        if (mScanTimerTask == null) {
+            mScanTimerTask = new ScanTimerTask();
+            mWifiScanTimer.schedule(mScanTimerTask, 0, 8000);
+        }
+    }
 
-    private Runnable mRunnable = new Thread() {
+    private void stopScanWifiTask() {
+        if (mWifiScanTimer != null) {
+            mWifiScanTimer.cancel();
+            mWifiScanTimer = null;
+        }
+        if (mScanTimerTask != null) {
+            mScanTimerTask.cancel();
+            mScanTimerTask = null;
+        }
+    }
+
+    private class ScanTimerTask extends TimerTask {
         @Override
         public void run() {
             scaleWifi();
-            MyApplication.getmHandler().postDelayed(this, 3000);
         }
-    };
+    }
     //监听wifi状态
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -296,23 +323,12 @@ public class StartAppTwoActivity extends BaseActivity implements View.OnClickLis
         }
     };
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        MyApplication.getmHandler().postDelayed(mRunnable, 3000);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mWifiUtils = null;
-        MyApplication.getmHandler().removeCallbacks(mRunnable);
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mReceiver);
+        stopScanWifiTask();
     }
 
     @Override

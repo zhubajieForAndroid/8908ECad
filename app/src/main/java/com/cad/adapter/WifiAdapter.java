@@ -105,6 +105,11 @@ public class WifiAdapter extends BaseAdapter {
         return convertView;
     }
 
+    public void updataWifiList(List<ScanResult> wifiList) {
+        mScanResultList = wifiList;
+        notifyDataSetChanged();
+    }
+
     public class ViewHolder {
         TextView wifiName;
         ImageView wifiLinkSpeed;

@@ -5,4 +5,20 @@
     <color name="colorAccent">#FF4081</color>
     <color name="mycolor">#00000000</color>
     <color name="common_blue_0090FF">#0090FF</color>
+    <color name="green">#26b54b</color>
+    <color name="yellow">#ff861b</color>
+    <color name="red">#ff4141</color>
+    <color name="blue">#1d87f9</color>
+    <color name="background">#12252f</color>
+    <color name="brightbackground">#172e3b</color>
+    <color name="home_work_info_bg">#264c61</color>
+    <color name="before">#d9e101</color>
+    <color name="after">#014fe1</color>
+    <color name="linecolor">#374c57</color>
+    <color name="back_btn_red">#ab2a2a</color>
+    <color name="save_btn_green">#16bf42</color>
+    <color name="delete_btn">#ef851e</color>
+    <color name="updata_btn">#024ec1</color>
+    <color name="white">#ffffff</color>
+    <color name="gray">#686868</color>
 </resources>

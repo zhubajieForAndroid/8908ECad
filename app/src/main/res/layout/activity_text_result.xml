@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#172E3B"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".textFunction.TextResultActivity">
+    <ImageView
+        android:id="@+id/toobar_bg_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <include
+        layout="@layout/topbar_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toobar_bg_image"/>
+    <Button
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:textStyle="bold"
+        android:textSize="26sp"
+        android:textColor="@android:color/white"
+        android:id="@+id/bt_back"
+        android:text="返回"
+        android:layout_width="250dp"
+        android:layout_height="70dp"
+        android:background="@drawable/back_btn_shape"/>
+</RelativeLayout>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:id="@+id/ll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp">
+        <View android:layout_width="20dp" android:layout_height="20dp"
+              android:layout_gravity="center" android:background="@color/before"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="5dp"
+            android:text="施工前"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"/>
+        <View android:layout_width="20dp" android:layout_height="20dp"
+              android:layout_gravity="center" android:layout_marginLeft="20dp"
+              android:background="@color/after"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="5dp"
+            android:text="施工后"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"/>
+    </LinearLayout>
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/ll"/>
+</RelativeLayout>

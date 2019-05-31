@@ -5,17 +5,18 @@
     android:id="@+id/activity_filling"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.cad.activity.FillingActivity">
+    tools:context=".activity.FillingActivity">
     <ImageView
         android:id="@+id/add_bg"
         android:src="@mipmap/bg_3_2"
+        android:scaleType="fitXY"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
     <TextView
         android:id="@+id/ratio_numbwe"
         android:gravity="center"
         android:layout_marginLeft="390dp"
-        android:layout_marginTop="505dp"
+        android:layout_marginTop="497dp"
         android:textStyle="bold"
         android:textSize="40sp"
         android:textColor="#1b6ffa"

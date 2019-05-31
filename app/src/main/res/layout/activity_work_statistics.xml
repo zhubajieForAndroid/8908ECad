@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:background="#172E3B"
                 android:orientation="vertical"
-                tools:context="com.cad.activity.WorkStatisticsActivity">
+                tools:context=".activity.WorkStatisticsActivity">
     <ImageView
         android:id="@+id/toobar_bg_image"
         android:layout_width="match_parent"
@@ -15,65 +15,36 @@
         layout="@layout/topbar_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/x40"
-        android:layout_marginTop="130dp"
-        android:src="@mipmap/top_text"/>
-
-    <RelativeLayout
-        android:layout_marginTop="190dp"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:id="@+id/work_linearlayout_title"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
+        <ImageView
+            android:layout_marginTop="40dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/x38"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/y44"
-                android:src="@mipmap/text_1"/>
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/y53"
-                android:src="@mipmap/text_2"/>
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/y53"
-                android:src="@mipmap/text_3"/>
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/y53"
-                android:src="@mipmap/text_4"/>
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/y53"
-                android:src="@mipmap/text_5"/>
-        </LinearLayout>
+            android:layout_marginLeft="@dimen/x170"
+            android:src="@mipmap/top_text"/>
         <LinearLayout
+            android:layout_marginLeft="@dimen/x170"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/x38"
-            android:layout_marginTop="@dimen/y8"
-            android:layout_toRightOf="@+id/work_linearlayout_title"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
             <LinearLayout
-                android:gravity="center_vertical"
-                android:layout_marginTop="50dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/text_1"/>
                 <me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar
+                   android:layout_gravity="bottom"
                     android:id="@+id/pb"
                     android:layout_width="764dp"
                     android:layout_height="20dp"
+                    android:layout_marginLeft="@dimen/x38"
                     app:zpb_bg_color="#030e20"
                     app:zpb_gradient_from="#1B70FA"
                     app:zpb_gradient_to="#1FC8F5"
@@ -82,23 +53,29 @@
                     app:zpb_padding="0dp"
                     app:zpb_progress="0"/>
                 <TextView
-                    android:text="0次"
                     android:id="@+id/depth_tv"
-                    android:layout_marginLeft="22dp"
-                    android:textColor="#49baf9"
-                    android:textSize="30sp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/x38"
+                    android:text="0次"
+                    android:textColor="#49baf9"
+                    android:textSize="30sp"/>
             </LinearLayout>
             <LinearLayout
-                android:gravity="center_vertical"
-                android:layout_marginTop="50dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:src="@mipmap/text_2"/>
                 <me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar
                     android:id="@+id/pb1"
                     android:layout_width="764dp"
                     android:layout_height="20dp"
+                    android:layout_gravity="bottom"
+                    android:layout_marginLeft="@dimen/x38"
                     app:zpb_bg_color="#030e20"
                     app:zpb_gradient_from="#1B70FA"
                     app:zpb_gradient_to="#1FC8F5"
@@ -107,23 +84,28 @@
                     app:zpb_padding="0dp"
                     app:zpb_progress="0"/>
                 <TextView
-                    android:text="0次"
                     android:id="@+id/routine_tv"
-                    android:layout_marginLeft="22dp"
-                    android:textColor="#49baf9"
-                    android:textSize="30sp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="22dp"
+                    android:text="0次"
+                    android:textColor="#49baf9"
+                    android:textSize="30sp"/>
             </LinearLayout>
             <LinearLayout
-                android:gravity="center_vertical"
-                android:layout_marginTop="50dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/text_3"/>
                 <me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar
+                    android:layout_gravity="bottom"
                     android:id="@+id/pb2"
                     android:layout_width="764dp"
                     android:layout_height="20dp"
+                    android:layout_marginLeft="@dimen/x38"
                     app:zpb_bg_color="#030e20"
                     app:zpb_gradient_from="#1B70FA"
                     app:zpb_gradient_to="#1FC8F5"
@@ -132,23 +114,29 @@
                     app:zpb_padding="0dp"
                     app:zpb_progress="0"/>
                 <TextView
-                    android:text="0ml"
                     android:id="@+id/pd2_tv"
-                    android:layout_marginLeft="22dp"
-                    android:textColor="#49baf9"
-                    android:textSize="30sp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/x38"
+                    android:text="0ml"
+                    android:textColor="#49baf9"
+                    android:textSize="30sp"/>
             </LinearLayout>
             <LinearLayout
-                android:gravity="center_vertical"
-                android:layout_marginTop="50dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/text_4"/>
                 <me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar
+                    android:layout_gravity="bottom"
                     android:id="@+id/pb3"
                     android:layout_width="764dp"
                     android:layout_height="20dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="@dimen/x38"
                     app:zpb_bg_color="#030e20"
                     app:zpb_gradient_from="#1B70FA"
                     app:zpb_gradient_to="#1FC8F5"
@@ -157,23 +145,30 @@
                     app:zpb_padding="0dp"
                     app:zpb_progress="0"/>
                 <TextView
-                    android:text="0ml"
                     android:id="@+id/add_totel"
-                    android:layout_marginLeft="22dp"
-                    android:textColor="#49baf9"
-                    android:textSize="30sp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="@dimen/x38"
+                    android:text="0ml"
+                    android:textColor="#49baf9"
+                    android:textSize="30sp"/>
             </LinearLayout>
             <LinearLayout
-                android:gravity="center_vertical"
-                android:layout_marginTop="50dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/text_5"/>
                 <me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar
+                    android:layout_gravity="bottom"
                     android:id="@+id/pb4"
                     android:layout_width="764dp"
                     android:layout_height="20dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="@dimen/x38"
                     app:zpb_bg_color="#030e20"
                     app:zpb_gradient_from="#1B70FA"
                     app:zpb_gradient_to="#1FC8F5"
@@ -182,25 +177,54 @@
                     app:zpb_padding="0dp"
                     app:zpb_progress="0"/>
                 <TextView
-                    android:text="0次"
                     android:id="@+id/pd4_tv"
-                    android:layout_marginLeft="22dp"
-                    android:textColor="#49baf9"
-                    android:textSize="30sp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="@dimen/x38"
+                    android:text="0次"
+                    android:textColor="#49baf9"
+                    android:textSize="30sp"/>
             </LinearLayout>
-
         </LinearLayout>
-        <ImageButton
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_marginRight="@dimen/x27"
+        android:layout_marginBottom="@dimen/y19"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:textColor="@android:color/white"
+            android:id="@+id/text_result"
+            android:text="功能测试结果"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
+            android:background="@drawable/delete_btn_shape"/>
+        <Button
+            android:layout_marginStart="15dp"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:textColor="@android:color/white"
+            android:id="@+id/text_function"
+            android:text="设备功能测试"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
+            android:background="@drawable/delete_btn_shape"/>
+        <Button
+            android:layout_marginStart="15dp"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:textColor="@android:color/white"
             android:id="@+id/bt_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="@dimen/y19"
-            android:layout_marginRight="@dimen/x27"
-            android:background="#172E3B"
-            android:src="@mipmap/back_red"/>
-    </RelativeLayout>
+            android:text="返回"
+            android:layout_width="250dp"
+            android:layout_height="70dp"
+            android:background="@drawable/back_btn_shape"/>
+    </LinearLayout>
+
 </RelativeLayout>

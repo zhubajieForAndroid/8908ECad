@@ -43,14 +43,13 @@ public class SerialPort {
 		if (!device.canRead() || !device.canWrite()) {
 			Log.d(TAG, "SerialPort: 没有操作串口的权限");
 			try {
-				//权限丢失从新获取
-				Process su;
-				su = Runtime.getRuntime().exec("/system/bin/su");
-				String cmd = "chmod 666 " + device.getAbsolutePath() + "\n"
-						+ "exit\n";
+				//权限丢失从新获取  /system/bin/su
+				//-rwsr-x--- 1 root shell 16272 2018-10-16 10:51 /system/xbin/su
+				//-rwsr-sr-x root     root       100068 2008-08-01 12:00 su
+				Process su = Runtime.getRuntime().exec("/system/xbin/su");
+				String cmd = "chmod 666 " + device.getAbsolutePath() + "\n" + "exit\n";
 				su.getOutputStream().write(cmd.getBytes());
-				if ((su.waitFor() != 0) || !device.canRead()
-						|| !device.canWrite()) {
+				if ((su.waitFor() != 0) || !device.canRead() || !device.canWrite()) {
 					throw new SecurityException();
 				}
 			} catch (Exception e) {
@@ -59,7 +58,6 @@ public class SerialPort {
 				throw new SecurityException();
 			}
 		}
-		Log.d(TAG, "SerialPort: 有操作串口的权限");
 		mFd = open(device.getAbsolutePath(), baudrate, flags);
 		if (mFd == null) {
 			Log.d(TAG, "native打开方法返回null");

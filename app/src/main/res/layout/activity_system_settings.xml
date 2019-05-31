@@ -4,7 +4,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#12242E"
-                tools:context="com.cad.activity.SystemSettingsActivity">
+                tools:context=".activity.SystemSettingsActivity">
     <ImageView
         android:id="@+id/toobar_bg_image"
         android:layout_width="match_parent"

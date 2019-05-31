@@ -6,12 +6,33 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="windowNoTitle">true</item>
     </style>
     <style name="dialog" parent="@android:style/Theme.Dialog">
         <item name="android:windowFrame">@null</item><!--边框-->
         <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
         <item name="android:windowNoTitle">true</item><!--无标题-->
         <item name="android:windowBackground">@color/mycolor</item><!--背景透明-->
+    </style>
+<!--加载动画-->
+    <style name="AVLoadingIndicatorView">
+        <item name="minWidth">100dip</item>
+        <item name="maxWidth">100dip</item>
+        <item name="minHeight">100dip</item>
+        <item name="maxHeight">100dip</item>
+        <item name="indicatorName">BallPulseIndicator</item>
+    </style>
+    <style name="imageThrem" parent="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/transparent</item>//这个之时全透明
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+    <style name="TabLayoutTextStyle">
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="tablayoutTextSize" parent="AppTheme">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@android:color/white</item>
     </style>
 
 </resources>

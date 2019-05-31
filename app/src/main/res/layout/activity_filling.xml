@@ -5,10 +5,11 @@
     android:id="@+id/activity_filling"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.cad.activity.FillingActivity">
+    tools:context=".activity.FillingActivity">
     <ImageView
         android:id="@+id/add_bg"
         android:src="@mipmap/bg_3_1"
+        android:scaleType="fitXY"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
     <ImageView

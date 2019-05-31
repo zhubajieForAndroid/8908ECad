@@ -5,10 +5,11 @@
     android:id="@+id/activity_filling"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.cad.activity.FillingActivity">
+    tools:context=".activity.FillingActivity">
     <ImageView
         android:id="@+id/add_bg"
         android:src="@mipmap/bg_3_3"
+        android:scaleType="fitXY"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
     <ImageView
@@ -19,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
     <ImageView
-        android:layout_marginRight="50dp"
+        android:layout_marginRight="40dp"
         android:layout_alignParentRight="true"
         android:layout_marginTop="410dp"
         android:id="@+id/start_btn"
@@ -43,7 +44,7 @@
         <ImageView
             android:id="@+id/minute_one"
             android:layout_gravity="center"
-            android:src="@mipmap/digit_8"
+            android:src="@mipmap/digit_0"
             android:layout_marginLeft="25dp"
             android:layout_width="90dp"
             android:layout_height="80dp"/>
@@ -69,5 +70,25 @@
     <include
         android:id="@+id/topbarView"
         layout="@layout/topbar_layout"/>
+    <LinearLayout
+        android:layout_marginBottom="135dp"
+        android:layout_marginRight="335dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/plus_number"
+            android:src="@mipmap/plus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <ImageView
+            android:id="@+id/minus_number"
+            android:layout_marginTop="5dp"
+            android:src="@mipmap/minus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
 
 </RelativeLayout>

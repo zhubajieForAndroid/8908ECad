@@ -7,7 +7,7 @@
         android:id="@+id/dialog_bg_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    <com.cad.widget.SquareEditextTwoContainer
+    <com.E8908.widget.SquareEditextTwoContainer
         android:id="@+id/load_result_number"
         android:layout_marginLeft="20dp"
         android:layout_marginTop="70dp"

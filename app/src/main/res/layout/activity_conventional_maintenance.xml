@@ -6,7 +6,7 @@
                 android:layout_height="match_parent"
                 android:background="#172E3B"
                 android:orientation="vertical"
-                tools:context="com.cad.activity.ConventionalMaintenanceActivity">
+                tools:context=".activity.ConventionalMaintenanceActivity">
     <ImageView
         android:id="@+id/toobar_bg_image"
         android:layout_width="match_parent"
@@ -30,7 +30,8 @@
             <LinearLayout
                 android:id="@+id/progress_container"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/x330"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:layout_gravity="center"
                 android:layout_marginLeft="25dp"
                 android:layout_marginRight="25dp"
@@ -53,8 +54,8 @@
                         android:layout_height="20dp"
                         android:layout_centerVertical="true"
                         android:layout_marginLeft="37dp"
-                        android:layout_marginRight="53dp"
                         android:layout_marginTop="15dp"
+                        android:layout_marginRight="53dp"
                         android:layout_toRightOf="@id/tv"
                         app:zpb_bg_color="#030e20"
                         app:zpb_gradient_from="#1B70FA"
@@ -104,8 +105,8 @@
                         android:layout_height="20dp"
                         android:layout_centerVertical="true"
                         android:layout_marginLeft="37dp"
-                        android:layout_marginRight="53dp"
                         android:layout_marginTop="15dp"
+                        android:layout_marginRight="53dp"
                         android:layout_toRightOf="@id/tv1"
                         app:zpb_bg_color="#030e20"
                         app:zpb_gradient_from="#1B70FA"
@@ -154,8 +155,8 @@
                         android:layout_height="20dp"
                         android:layout_centerVertical="true"
                         android:layout_marginLeft="37dp"
-                        android:layout_marginRight="53dp"
                         android:layout_marginTop="15dp"
+                        android:layout_marginRight="53dp"
                         android:layout_toRightOf="@id/tv2"
                         app:zpb_bg_color="#030e20"
                         app:zpb_gradient_from="#1B70FA"
@@ -187,113 +188,33 @@
                     </RelativeLayout>
                 </RelativeLayout>
             </LinearLayout>
-
-            <!--电压电流-->
-            <RelativeLayout
-                android:id="@+id/tab_Relativelayout_message"
-                android:layout_width="@dimen/x469"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/progress_container"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:background="@drawable/background_shape">
-                <TextView
-                    android:id="@+id/dc_voltage"
-                    android:layout_width="wrap_content"
+            <!--电压电流,气体数据-->
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingRight="30dp"
+                android:paddingLeft="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+                <android.support.design.widget.TabLayout
+                    app:tabIndicatorColor="@android:color/transparent"
+                    android:id="@+id/tab"
+                    android:layout_width="match_parent"
+                    app:tabTextAppearance="@style/TabLayoutTextStyle"
+                    app:tabTextColor="@android:color/white"
+                    app:tabSelectedTextColor="@color/common_blue_0090FF"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/x24"
-                    android:layout_marginTop="@dimen/y17"
-                    android:text="交流电压"
-                    android:textColor="#ffffff"
-                    android:textSize="24px"/>
-
-                <TextView
-                    android:id="@+id/dc_voltage_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_marginRight="@dimen/x26"
-                    android:layout_marginTop="@dimen/y17"
-                    android:text="0V"
-                    android:textColor="#ffffff"
-                    android:textSize="24px"/>
+                    android:layout_below="@+id/progress_container"/>
+                <android.support.v4.view.ViewPager
+                    android:layout_gravity="center"
+                    android:background="@drawable/background_shape"
+                    android:id="@+id/viewpager"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"/>
+            </LinearLayout>
 
 
-                <TextView
-                    android:id="@+id/ac_current"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/dc_voltage"
-                    android:layout_marginLeft="@dimen/x24"
-                    android:layout_marginTop="@dimen/y22"
-                    android:text="交流电流"
-                    android:textColor="#ffffff"
-                    android:textSize="24px"/>
-
-                <TextView
-                    android:id="@+id/ac_current_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@+id/dc_voltage"
-                    android:layout_marginBottom="@dimen/y22"
-                    android:layout_marginRight="@dimen/x26"
-                    android:layout_marginTop="@dimen/y22"
-                    android:text="0A"
-                    android:textColor="#ffffff"
-                    android:textSize="24px"/>
-
-                <TextView
-                    android:id="@+id/total_number_of_work"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/ac_current"
-                    android:layout_marginBottom="@dimen/y22"
-                    android:layout_marginLeft="@dimen/x24"
-                    android:layout_marginTop="@dimen/y22"
-                    android:text="工作总次数"
-                    android:textColor="#ffffff"
-                    android:textSize="24px"/>
-
-                <TextView
-                    android:id="@+id/total_number_of_work_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_below="@+id/ac_current"
-                    android:layout_marginRight="@dimen/x26"
-                    android:layout_marginTop="@dimen/y22"
-                    android:text="0次"
-                    android:textColor="#ffffff"
-                    android:textSize="24px"/>
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/total_number_of_work_value"
-                    android:layout_marginBottom="10dp"
-                    android:layout_marginTop="18dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginLeft="25dp"
-                        android:text="药液箱剩余"
-                        android:textColor="#ffffff"
-                        android:textSize="24px"/>
-
-                    <TextView
-                        android:id="@+id/surplus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginRight="25dp"
-                        android:text="0ml"
-                        android:textColor="#ffffff"
-                        android:textSize="24px"/>
-                </RelativeLayout>
-
-            </RelativeLayout>
         </LinearLayout>
         <LinearLayout
             android:layout_width="0dp"
@@ -311,46 +232,46 @@
                 android:layout_toRightOf="@+id/progress_container"
                 android:background="@mipmap/right_show_bg_1">
                 <ImageView
+                    android:layout_gravity="center_vertical"
                     android:id="@+id/conventional_image_blue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="138dp"
-                    android:layout_marginTop="@dimen/y22"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
                     android:id="@+id/conventional_image_blue2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_gravity="center_vertical"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
                     android:id="@+id/conventional_image_blue3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="27dp"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_gravity="center_vertical"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
                     android:id="@+id/conventional_image_blue4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_gravity="center_vertical"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
                     android:id="@+id/conventional_image_blue5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="26dp"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_gravity="center_vertical"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
                     android:id="@+id/conventional_image_blue6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_gravity="center_vertical"
                     android:src="@mipmap/digit_blue_0"/>
 
             </LinearLayout>
@@ -365,91 +286,88 @@
                 android:layout_toRightOf="@+id/progress_container"
                 android:background="@mipmap/right_show_bg_2">
                 <ImageView
+                    android:layout_marginLeft="155dp"
+                    android:layout_centerVertical="true"
                     android:id="@+id/conventional_time_blue_image_1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/x145"
-                    android:layout_marginTop="@dimen/y22"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
                     android:id="@+id/conventional_time_blue_image_2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/x60"
-                    android:layout_marginTop="@dimen/y22"
-                    android:layout_toRightOf="@+id/conventional_time_blue_image_1"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="65dp"
+                    android:layout_toEndOf="@+id/conventional_time_blue_image_1"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
+                    android:layout_centerVertical="true"
                     android:id="@+id/conventional_time_blue_image_3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/x65"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_marginStart="65dp"
                     android:layout_toRightOf="@+id/conventional_time_blue_image_2"
                     android:src="@mipmap/digit_blue_0"/>
                 <ImageView
+                    android:layout_centerVertical="true"
                     android:id="@+id/conventional_time_blue_image_5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/x65"
-                    android:layout_marginTop="@dimen/y22"
+                    android:layout_marginStart="65dp"
                     android:layout_toRightOf="@+id/conventional_time_blue_image_3"
                     android:src="@mipmap/digit_blue_0"/>
             </RelativeLayout>
             <!--运行时的进度-->
             <RelativeLayout
-                android:layout_marginLeft="55dp"
                 android:id="@+id/coventional_model"
                 android:layout_width="625dp"
                 android:layout_height="140dp"
                 android:layout_below="@+id/coventional_time_relativelayout"
+                android:layout_marginLeft="55dp"
                 android:layout_marginTop="@dimen/y31"
                 android:layout_toRightOf="@+id/progress_container"
                 android:background="@drawable/conventional_background_shape">
                 <LinearLayout
-                    android:gravity="center"
-                    android:layout_centerInParent="true"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:gravity="center">
                     <TextView
                         android:id="@+id/convertional_textview_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="正在常规养护模式"
                         android:textColor="#a2dcff"
-                        android:textSize="43px"/>
+                        android:textSize="38px"/>
                     <TextView
-                        android:layout_gravity="center_vertical"
-                        android:visibility="gone"
                         android:id="@+id/convertional_textview_progress"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
                         android:layout_toRightOf="@+id/convertional_textview_title"
                         android:text="00"
                         android:textColor="#e31616"
-                        android:textSize="43px"/>
+                        android:textSize="40px"
+                        android:visibility="gone"/>
                     <TextView
-                        android:layout_gravity="center_vertical"
-                        android:visibility="gone"
                         android:id="@+id/bai"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
                         android:layout_toRightOf="@+id/convertional_textview_progress"
                         android:text="%"
                         android:textColor="#a2dcff"
-                        android:textSize="43px"/>
+                        android:textSize="43px"
+                        android:visibility="gone"/>
                 </LinearLayout>
             </RelativeLayout>
             <!--开始结束按钮-->
             <RelativeLayout
                 android:id="@+id/relativeLayout_coventional_bt"
-                android:layout_width="@dimen/x625"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/coventional_model"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_marginTop="@dimen/y22"
-                android:layout_toRightOf="@+id/progress_container">
-
+                android:layout_marginTop="@dimen/y22">
                 <ImageView
                     android:id="@+id/btn_start"
                     android:layout_width="wrap_content"

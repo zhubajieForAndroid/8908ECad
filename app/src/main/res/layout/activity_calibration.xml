@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#172e3b"
-    tools:context="com.cad.activity.CalibrationActivity">
+    tools:context=".activity.CalibrationActivity">
     <ImageView
         android:id="@+id/toobar_bg_image"
         android:layout_width="match_parent"
@@ -94,6 +94,7 @@
                 android:src="@mipmap/btn_over_normal"/>
         </RelativeLayout>
     </LinearLayout>
+
     <ImageView
         android:id="@+id/back_btn"
         android:src="@mipmap/back_red"
@@ -103,5 +104,20 @@
         android:layout_alignParentRight="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-
+    <Button
+        android:textStyle="bold"
+        android:background="@drawable/back_btn_shape"
+        android:text="设置电子秤系数"
+        android:textColor="@color/white"
+        android:id="@+id/set_btn"
+        android:textSize="32sp"
+        android:paddingBottom="15dp"
+        android:paddingTop="15dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_marginLeft="@dimen/x27"
+        android:layout_marginBottom="@dimen/x19"
+        android:layout_alignParentBottom="true"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"/>
 </RelativeLayout>

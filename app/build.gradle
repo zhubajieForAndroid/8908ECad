@@ -1,15 +1,33 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "27.0.2"
+    compileSdkVersion 28
     defaultConfig {
-        applicationId "com.cad"
+        applicationId "com.E8908"
         minSdkVersion 19
-        targetSdkVersion 22
-        versionCode 1
-        versionName '1.0'
+        targetSdkVersion 28
+        versionCode 6
+        versionName '1.5'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        /* //Jpush
+        ndk {
+            //选择要添加的对应cpu类型的.so库。
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86'
+            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
+        }
+        //Jpush
+        manifestPlaceholders = [
+                JPUSH_PKGNAME: "com.cad",
+                JPUSH_APPKEY : "cbf7a72736b96bf0140f5734", //JPush上注册的包名对应的appkey.
+                JPUSH_CHANNEL: "developer-default",
+        ]*/
+        //解决 Annotation processors must be explicitly declared now
+        javaCompileOptions { annotationProcessorOptions { includeCompileClasspath = true } }
+    }
+    //Jpush 配置在NDK r17之后不再支持 mips 平台了
+    packagingOptions {
+        doNotStrip '*/mips/*.so'
+        doNotStrip '*/mips64/*.so'
     }
     buildTypes {
         release {
@@ -31,16 +49,39 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    testCompile 'junit:junit:4.12'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.squareup.okhttp3:okhttp:3.6.0'
-    compile 'io.github.openfeign:feign-gson:9.4.0'
-    compile 'com.acker:simplezxing:1.5'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:design:28.0.0'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.okhttp3:okhttp:3.6.0'
+    implementation 'io.github.openfeign:feign-gson:9.4.0'
+    implementation 'com.acker:simplezxing:1.5'
     //进度条
-    compile 'me.zhouzhuo.zzhorizontalprogressbar:zz-horizontal-progressbar:1.0.3'
+    implementation 'me.zhouzhuo.zzhorizontalprogressbar:zz-horizontal-progressbar:1.0.3'
+    /*  //极光
+                                                            implementation 'cn.jiguang.sdk:jpush:3.1.6'
+                                                            // 此处以JPush 3.1.5 版本为例。
+                                                            implementation 'cn.jiguang.sdk:jcore:1.2.5'
+                                                            // 此处以JCore 1.2.3 版本为例。*/
+    /*  //内存泄露检查工具
+                                                                debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+                                                                releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
+                                                                // Optional, if you use support library fragments:
+                                                                debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.2'*/
+    //图标库(曲线图,柱状图)
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+    //图片压缩鲁班
+    implementation 'top.zibin:Luban:1.1.8'
+    implementation project(':smartvisionlibrary')
+    //蓝牙
+    implementation 'com.clj.fastble:FastBleLib:2.3.4'
+    //文件下载器
+    implementation 'com.liulishuo.filedownloader:library:1.7.6'
+    //文件下载器,使用okhttp作为连接
+    implementation 'cn.dreamtobe.filedownloader:filedownloader-okhttp3-connection:1.1.0'
 }

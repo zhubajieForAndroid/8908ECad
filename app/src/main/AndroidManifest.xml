@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.cad">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.E8908">
 
+    <!-- Required -->
+    <!--
+        <permission
+        android:name="com.cad.permission.JPUSH_MESSAGE"
+        android:protectionLevel="signature"/>
+    &lt;!&ndash; Required  一些系统要求的权限，如访问网络等 &ndash;&gt;
+    <uses-permission android:name="com.cad.permission.JPUSH_MESSAGE"/>
+    -->
+    <uses-permission android:name="android.permission.RECEIVE_USER_PRESENT"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+
+    <!-- Optional for location -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission
+        android:name="android.permission.SYSTEM_ALERT_WINDOW"/> <!-- 用于开启 debug 版本的应用在6.0 系统上 层叠窗口权限 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <!-- 网络信息权限 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -12,15 +32,32 @@
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
     <!-- 打开系统相册 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <!-- 调用摄像头权限 -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- sd卡读写权限 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
-
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!-- 显示顶层浮窗 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- 安装应用 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <!-- 使用扫描和设置蓝牙的权限（申明这一个权限必须申明上面一个权限） -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!-- 而在Android 5.0 之后，需要在manifest 中  //申明GPS硬件模块功能的使用 -->
+    <uses-feature android:name="android.hardware.location.gps"/>
+    <!-- 在 Android 6.0 及以上，还需要打开位置权限 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- 使用扫描和设置蓝牙的权限（申明这一个权限必须申明上面一个权限） -->
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        tools:ignore="DuplicateUsesFeature"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true"/>
 
     <application
         android:name=".base.MyApplication"
@@ -28,19 +65,18 @@
         android:icon="@mipmap/icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".activity.MainActivity"/>
         <activity android:name=".activity.SystemSettingsActivity"/>
         <activity android:name=".activity.AboutEquipmentActivity"/>
-        <activity android:name=".activity.ConventionalMaintenanceActivity"/>
         <activity android:name=".activity.StartAppActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER"/>
-                <!-- 开机启动 -->
                 <category android:name="android.intent.category.HOME"/>
                 <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity android:name=".activity.WorkStatisticsActivity"/>
@@ -63,6 +99,7 @@
         </activity>
         <activity android:name=".activity.StartAppTwoActivity">
         </activity>
+
         <receiver
             android:name=".activity.InitApkBroadCastReceiver"
             android:enabled="true">
@@ -70,10 +107,84 @@
                 <action android:name="android.intent.action.PACKAGE_ADDED"/>
                 <action android:name="android.intent.action.PACKAGE_REPLACED"/>
                 <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+
                 <data android:scheme="package"/>
             </intent-filter>
         </receiver>
+        <!--
+        <receiver
+            android:name=".thread.PushBroadcastReceive"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action
+                    android:name="cn.jpush.android.intent.REGISTRATION"/> &lt;!&ndash; Required  用户注册SDK的intent &ndash;&gt;
+                <action
+                    android:name="cn.jpush.android.intent.MESSAGE_RECEIVED"/> &lt;!&ndash; Required  用户接收SDK消息的intent &ndash;&gt;
+                <action
+                    android:name="cn.jpush.android.intent.NOTIFICATION_RECEIVED"/> &lt;!&ndash; Required  用户接收SDK通知栏信息的intent &ndash;&gt;
+                <action
+                    android:name="cn.jpush.android.intent.NOTIFICATION_OPENED"/> &lt;!&ndash; Required  用户打开自定义通知栏的intent &ndash;&gt;
+                <action
+                    android:name="cn.jpush.android.intent.CONNECTION"/> &lt;!&ndash; 接收网络变化 连接/断开 since 1.6.3 &ndash;&gt;
+                <category android:name="com.cad.E8908"/>
+            </intent-filter>
+        </receiver>
+        -->
 
+        <activity android:name=".activity.CheckGasActivity">
+        </activity>
+        <activity android:name=".activity.HistoryActivity">
+        </activity>
+        <activity android:name=".activity.OdourActivity">
+        </activity>
+        <activity android:name=".activity.HarmfulGasActivity">
+        </activity>
+        <activity android:name=".activity.AirConditionerActivity">
+        </activity>
+        <activity
+            android:name=".activity.ImageActivity"
+            android:theme="@style/imageThrem">
+        </activity>
+        <activity android:name=".activity.NeatActivity">
+        </activity>
+        <activity android:name=".activity.SearchResultActivity">
+        </activity>
+        <activity android:name=".activity.CreatePresentationActivity">
+        </activity>
+        <activity android:name=".activity.HarmfulGasCurveActivity">
+        </activity>
+        <activity android:name=".activity.GasListActivity">
+        </activity>
+        <activity android:name=".activity.GasListActivityDemo"/>
+        <activity android:name=".activity.EditTabActivity">
+        </activity>
+        <activity android:name=".activity.FillingThreeActivityDemo"/>
+        <!-- 上传图片是相机拍照创建临时文件使用的FileProvider和下载安装Apk时使用 -->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.E8908.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
+
+        <activity android:name=".activity.ConventionalMaintenanceActivityDemo"/>
+        <activity android:name=".activity.ConventionalMaintenanceActivity"/>
+        <activity android:name=".blueTooth.LinkBlueToothActivity"/>
+        <activity android:name=".blueTooth.BlurToothListActivity"/>
+
+        <service android:name=".blueTooth.SendBleDataService"/>
+
+        <activity android:name=".activity.MaintainThreeReadActivityDemo"/>
+        <activity android:name=".activity.ConventionalMaintenanceActivityDemo22"/>
+        <activity android:name=".activity.FillingThreeActivityDemo24"/>
+        <activity android:name=".textFunction.TextFunctionActivity">
+        </activity>
+        <activity android:name=".textFunction.TextResultActivity">
+        </activity>
     </application>
 
 </manifest>

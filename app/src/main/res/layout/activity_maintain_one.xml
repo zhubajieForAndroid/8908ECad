@@ -5,9 +5,10 @@
     android:id="@+id/activity_maintain_one"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.cad.activity.MaintainOneActivity">
+    tools:context=".activity.MaintainOneActivity">
     <ImageView
         android:id="@+id/bg_touch"
+        android:scaleType="fitXY"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
     <ImageView

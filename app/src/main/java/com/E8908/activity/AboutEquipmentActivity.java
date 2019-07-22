@@ -1,6 +1,8 @@
 package com.E8908.activity;
 
+import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -15,50 +17,32 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.E8908.R;
 import com.E8908.base.BaseActivity;
-import com.E8908.base.MyApplication;
 import com.E8908.conf.Constants;
-import com.E8908.impl.UpDataAppPersenterImpl;
-import com.E8908.thread.DownLoadUpListener;
-import com.E8908.ui.UpdataDialog;
-import com.E8908.util.CheckVersion;
 import com.E8908.util.DataUtil;
-import com.E8908.util.FileUtil;
-import com.E8908.util.NavigationBarUtil;
-import com.E8908.util.OkhttpManager;
 import com.E8908.util.SendUtil;
-import com.E8908.view.UpdataView;
 import com.E8908.widget.BitmapUtil;
+import com.E8908.widget.ServiceIpDialog;
 import com.E8908.widget.ToastUtil;
-import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadListener;
-import com.liulishuo.filedownloader.FileDownloader;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import com.tencent.bugly.beta.Beta;
+import com.tencent.bugly.beta.UpgradeInfo;
+import com.tencent.bugly.beta.download.DownloadListener;
+import com.tencent.bugly.beta.download.DownloadTask;
+import com.tencent.bugly.beta.upgrade.UpgradeListener;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
 
 /**
  * 关于设备页面
  */
 
-public class AboutEquipmentActivity extends BaseActivity implements View.OnClickListener, UpdataView {
+public class AboutEquipmentActivity extends BaseActivity implements View.OnClickListener,  ServiceIpDialog.OnIPInputListener {
     private static final String TAG = "AboutEquipmentActivity";
     @Bind(R.id.toobar_bg_image)
     ImageView mToobarBgImage;
@@ -129,13 +113,19 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
     ImageButton mAboutSystemBack;
     @Bind(R.id.temperature_state)
     TextView mTemperatureState;
+    @Bind(R.id.communication_state)
+    TextView mCommunicationState;
+    @Bind(R.id.service_ip)
+    TextView mServiceIp;
+    @Bind(R.id.ip_container)
+    LinearLayout mIpContainer;
     private ImageButton bt_checkUpdate, bt_back;
     private boolean mIsYesData = false;
-    private ProgressDialog mProgressDialog;
     private Handler mHandler;
     private ProgressDialog mHintDialog;
-    private FileDownloader mFileDownloader;
-    private UpDataAppPersenterImpl mUpDataAppPersenter;
+    private boolean isSendCheckDTU = true;                  //是否检测主板与通讯模块状态
+    private int mCurrentState;
+    private String mDtuIp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,10 +141,8 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
             window.setAttributes(wlp);
         }
-        FileDownloader.setup(this);
-        mFileDownloader = FileDownloader.getImpl();
+
         mHandler = new Handler();
-        mUpDataAppPersenter = new UpDataAppPersenterImpl(this);
         initView();
         initData();
     }
@@ -184,6 +172,44 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
         if (size == Constants.DATA_LONG && buffer[2] == 0x03) {
             analysisData(buffer);
         }
+        if (size == Constants.SET_RESULT_LINGTH) {
+            setResultData(buffer);
+        }
+        if (size == 25) {                            //查询服务器的IP地址
+            String serviceIp = DataUtil.getServiceIp(buffer);
+            if (!TextUtils.isEmpty(serviceIp)) {
+                mServiceIp.setText(serviceIp);
+            }
+        }
+    }
+
+    private void setResultData(byte[] buffer) {
+        Boolean isSuccess = DataUtil.analysisSetResult(buffer);
+        switch (mCurrentState) {
+            case 1:
+                mCurrentState = 0;
+                if (isSuccess) {
+                    mCommunicationState.setText("OK");
+                    mCommunicationState.setTextColor(getResources().getColor(R.color.white));
+                } else {
+                    mCommunicationState.setText("NG");
+                    mCommunicationState.setTextColor(getResources().getColor(R.color.red));
+                }
+                //查询IP地址
+                SendUtil.queryServiceIp();
+                break;
+            case 2:
+                if (isSuccess){
+                    mCurrentState = 0;
+                    ToastUtil.showMessage("设置成功,请2秒之后重启设备");
+                }else {
+                    mCurrentState = 2;
+                    if (!TextUtils.isEmpty(mDtuIp))
+                    SendUtil.setDtuIp(mDtuIp);
+                }
+                break;
+        }
+
     }
 
     /**
@@ -204,7 +230,11 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
     }
 
     private void analysisData(byte[] buffer) {
-        //2A 28 03 8B 1E F7 08 03 98 46 50 00 00 00 00 00 00 28 05 06 04 08 07 05 FF 30 30 30 30 30 30 30 30 25 0A 12 03 10 12 23
+        if (isSendCheckDTU) {
+            mCurrentState = 1;
+            isSendCheckDTU = false;
+            SendUtil.checkDtuIsScurress();
+        }
         String state = DataUtil.getState(buffer);                           //状态位
         int signalStrength = DataUtil.getSignalStrength(buffer);            //获取信号强度
         String equipmentNumber = DataUtil.getEquipmentNumber(buffer);       //获取序列号
@@ -287,9 +317,6 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCanceledOnTouchOutside(false);
 
     }
 
@@ -298,154 +325,32 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
         bt_back = findViewById(R.id.about_system_back);
         bt_checkUpdate.setOnClickListener(this);
         bt_back.setOnClickListener(this);
+        mIpContainer.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.about_system_cheack_update:               //检查更新
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 12);
-                } else {
-                    NavigationBarUtil.focusNotAle(mHintDialog.getWindow());
-                    mHintDialog.show();
-                    //显示虚拟栏的时候 隐藏
-                    NavigationBarUtil.hideNavigationBar(mHintDialog.getWindow());
-                    //再清理失能焦点
-                    NavigationBarUtil.clearFocusNotAle(mHintDialog.getWindow());
-                    SendUtil.controlVoice();
-                    mUpDataAppPersenter.loadData();
-                }
+                Beta.checkUpgrade();
                 break;
             case R.id.about_system_back:
                 SendUtil.controlVoice();
                 finish();
                 break;
+            case R.id.ip_container:                     //设置IP地址
+                ServiceIpDialog dialog = new ServiceIpDialog(this,R.style.dialog);
+                dialog.setOnIPInputListener(this);
+                dialog.show();
+                break;
         }
     }
+
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 12) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                NavigationBarUtil.focusNotAle(mHintDialog.getWindow());
-                mHintDialog.show();
-                //显示虚拟栏的时候 隐藏
-                NavigationBarUtil.hideNavigationBar(mHintDialog.getWindow());
-                //再清理失能焦点
-                NavigationBarUtil.clearFocusNotAle(mHintDialog.getWindow());
-                SendUtil.controlVoice();
-                mUpDataAppPersenter.loadData();
-            } else {
-                ToastUtil.showMessage("无权限无法更新");
-            }
-        }
-
-    }
-
-
-    private void showDilog(String text, final String apkUrl) {
-        UpdataDialog dialog = new UpdataDialog(this, R.style.dialog, text);
-        dialog.setDownLaodButtonListener(new UpdataDialog.OnDownloadButtonListener() {
-            @Override
-            public void isDownload(boolean b) {
-                if (b) {
-                    mFileDownloader.pauseAll();
-                    mFileDownloader.create(apkUrl).setPath(FileUtil.getUpdataPath().getAbsolutePath()).setListener(mFileDownloadListener).start();
-                }
-            }
-        });
-        dialog.show();
-    }
-
-    private FileDownloadListener mFileDownloadListener = new FileDownloadListener() {
-        @Override
-        protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            //等待，已经进入下载队列
-            Log.d(TAG, "pending: 已经进入下载队列");
-        }
-
-        @Override
-        protected void started(BaseDownloadTask task) {
-            //结束了pending，并且开始当前任务的Runnable
-            Log.d(TAG, "pending: 开始当前任务的Runnable");
-        }
-
-        @Override
-        protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
-            //已经连接上
-            Log.d(TAG, "pending: 已经连接上");
-        }
-
-        @Override
-        protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            mProgressDialog.setMax(totalBytes / 1024);
-            mProgressDialog.setProgress(soFarBytes / 1024);
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (!mProgressDialog.isShowing())
-                        mProgressDialog.show();
-                }
-            });
-            //下载进度回调
-            Log.d(TAG, "pending: 下载中,文件大小=" + totalBytes + " 当前下载进度=" + soFarBytes);
-        }
-
-        @Override
-        protected void blockComplete(BaseDownloadTask task) {
-            //在完成前同步调用该方法，此时已经下载完成
-            Log.d(TAG, "pending: 在完成前同步调用该方法，此时已经下载完成");
-        }
-
-        @Override
-        protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
-            //重试之前把将要重试是第几次回调回来
-            Log.d(TAG, "pending: 重试之前把将要重试是第几次回调回来");
-        }
-
-        @Override
-        protected void completed(BaseDownloadTask task) {
-            FileUtil.installApk(AboutEquipmentActivity.this, new File(task.getTargetFilePath()));
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
-
-        }
-
-        @Override
-        protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-            //暂停下载
-            Log.d(TAG, "pending: 暂停下载释放所有资源");
-        }
-
-        @Override
-        protected void error(BaseDownloadTask task, Throwable e) {
-            //下载出现错误
-            Log.d(TAG, "pending: 下载出现错误");
-            Toast.makeText(AboutEquipmentActivity.this, "网络断开,请重新下载", Toast.LENGTH_SHORT).show();
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
-        }
-
-        @Override
-        protected void warn(BaseDownloadTask task) {
-            //在下载队列中(正在等待/正在下载)已经存在相同下载连接与相同存储路径的任务
-            Log.d(TAG, "pending: 在下载队列中(正在等待/正在下载)已经存在相同下载连接与相同存储路径的任务");
-        }
-    };
-
-    @Override
-    public void onFaild(String msg) {
-        ToastUtil.showMessage(msg);
-        if (mHintDialog.isShowing())
-            mHintDialog.dismiss();
-    }
-
-    @Override
-    public void onSuccess(String downUrl, String upText) {
-        showDilog(upText, downUrl);
-        if (mHintDialog.isShowing())
-            mHintDialog.dismiss();
+    public void ipStr(String ip) {              //设置的IP地址
+        mDtuIp = ip;
+        mCurrentState = 2;
+        SendUtil.setDtuIp(ip);
     }
 }

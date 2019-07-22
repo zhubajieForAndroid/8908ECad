@@ -26,6 +26,7 @@ import com.E8908.widget.ToastUtil;
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
 import com.clj.fastble.callback.BleNotifyCallback;
+import com.clj.fastble.callback.BleRssiCallback;
 import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
@@ -82,6 +83,7 @@ public class SendBleDataService extends Service {
         mPreferences = getSharedPreferences("workStateByGas", 0);
         //保存蓝牙ID
         mBleIdSp = getSharedPreferences("BledeviceInfo",0);
+
     }
 
     @Override
@@ -92,8 +94,6 @@ public class SendBleDataService extends Service {
         mDeviceMac = intent.getStringExtra("BleDeviceMac");
         if (!TextUtils.isEmpty(mDeviceMac))
             mBleManager.connect(mDeviceMac, mBleGattCallback);
-
-
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -127,11 +127,12 @@ public class SendBleDataService extends Service {
             //订阅
             mBleManager.notify(bleDevice, mUuid_service, mUuid_chara, false, mBleNotifyCallback);
             Log.d(TAG, "onConnectSuccess: 连接成功");
+
         }
 
         @Override
         public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
-            Log.d(TAG, "onStartConnect: 主动断开连接");
+            Log.d(TAG, "onStartConnect: 主动断开连接"+isActiveDisConnected);
             //连接断开，特指连接后再断开的情况          isActiveDisConnected == true表示主动断开连接
             if (isActiveDisConnected) {
 
@@ -142,6 +143,7 @@ public class SendBleDataService extends Service {
             }
         }
     };
+
 
     private void initSendTask() {
         if (mTimer != null) {
@@ -253,6 +255,7 @@ public class SendBleDataService extends Service {
     private Callback mCallback = new Callback() {
         @Override
         public void onFailure(Call call, IOException e) {
+            Log.d(TAG, "onFailure: 网络异常");
         }
 
         @Override

@@ -220,6 +220,7 @@
             android:layout_weight="1">
             <!--DUT模块信号-->
             <LinearLayout
+                android:id="@+id/dtu"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"

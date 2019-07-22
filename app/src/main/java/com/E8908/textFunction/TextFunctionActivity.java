@@ -70,6 +70,8 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
     TextView mFunctionTv;
     @Bind(R.id.updata_text_tab)
     Button mUpdataTextTab;
+    @Bind(R.id.dtu)
+    LinearLayout mDtu;
     private int mSendState;
     private int mJiazhuTime = 30;         //加注800ML30秒内完成
     private int mAddCount = 800;          //800ML
@@ -224,8 +226,10 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
         }
         if (connectServerState.equals("1")) {
             //TODO 已经连接服务器
+            isServiceFail = false;
         } else {
             //TODO 未连接
+            isServiceFail = true;
         }
         if (activationState.equals("1")) {
             //TODO 已经激活
@@ -285,7 +289,6 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 break;
             case 2:                         //加注完成开始雾化,雾化工作一分钟
                 if (isSuccess) {
-                    Log.d(TAG, "setResultData: 开始雾化了");
                     mSendState = 0;
                     mDialog.setCurrentRuningState(2);
                     if (!mDialog.isShowing()) {
@@ -383,6 +386,17 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     startHuishou(9);
                 }
                 break;
+            case 10:
+                mSendState = 0;
+                if (isSuccess) {
+                    isDTUFail = false;
+                    SendUtil.controlVoice();
+                } else {
+                    isDTUFail = true;
+                    SendUtil.controlVoiceFive();
+                }
+
+                break;
         }
 
     }
@@ -403,6 +417,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
         mAfterLock.setOnClickListener(this);
         mSettings.setOnClickListener(this);
         mUpdataTextTab.setOnClickListener(this);
+        mDtu.setOnClickListener(this);
     }
 
     @Override
@@ -415,8 +430,8 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 mLoopCount = 0;         //初始化循环次数
                 //先加注,加注到800ML开始雾化
                 mJiazhuTime = mAddTimeTimp; //初始化倒计加注时时间
-                startJiazhu(1);
                 isLoopruning = false;
+                startJiazhu(1);
                 break;
             case R.id.shajun:                                    //杀菌
                 mLoopCount = 0;         //初始化循环次数
@@ -425,25 +440,25 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 break;
             case R.id.jinhua:                                    //净化
                 mLoopCount = 0;         //初始化循环次数
-                startJinghua(4);
                 isLoopruning = false;
+                startJinghua(4);
                 break;
             case R.id.jiazhu:                                    //加注
                 mLoopCount = 0;         //初始化循环次数
                 mJiazhuTime = mAddTimeTimp; //初始化加注倒计时时间
-                startJiazhu(5);
                 isLoopruning = false;
+                startJiazhu(5);
                 break;
             case R.id.huishou:                                    //回收
                 mLoopCount = 0;         //初始化循环次数
                 mBackSuccessTime = mBackTimeTimp;//初始化回收倒计时时间
-                startHuishou(9);
                 isLoopruning = false;
+                startHuishou(9);
                 break;
             case R.id.xunhuan:                                    //智能循环测试
                 mJiazhuTime = mAddTimeTimp; //初始化加注倒计时时间
-                startJiazhu(5);
                 isLoopruning = true;
+                startJiazhu(5);
                 break;
             case R.id.before_lock:                                //前门锁
                 if (!mIsBefore)
@@ -458,12 +473,17 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     mSettingDialog.show();
                 }
                 break;
+            case R.id.dtu:                                          //dtu模块
+                mSendState = 10;
+                SendUtil.checkDtuIsScurress();
+                break;
             case R.id.updata_text_tab:                               //上传测试报告
                 if (!mUpDataTextTabDialog.isShowing()) {
                     mUpDataTextTabDialog.show();
-                    mUpDataTextTabDialog.setData(isAddFail, isBackFail, isWuhuaFail, isShajunFail, isJinghuaFail, isServiceFail, isDTUFail, mEquipmentNumber,mLoopCount);
+                    mUpDataTextTabDialog.setData(isAddFail, isBackFail, isWuhuaFail, isShajunFail, isJinghuaFail, isServiceFail, isDTUFail, mEquipmentNumber, mLoopCount);
                 }
                 break;
+
         }
     }
 
@@ -486,6 +506,10 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     int shajun = msg.arg1;
                     mDialog.setRunText("正在进行杀菌" + shajun + "秒");
                     mDialog.setRunData("电流 :" + mCommunionFlow);
+                    if (isLoopruning && shajun == 5) {   //检测DTU
+                        mSendState = 10;
+                        SendUtil.checkDtuIsScurress();
+                    }
                     break;
                 case 5:                     //净化进行中
                     int jinhua = msg.arg1;
@@ -551,7 +575,6 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 10:                    //回收完成
                     if (isLoopruning) {
-                        //发送指令到服务器判断是否正常通讯
                         mLoopCount++;
                         if (mLoopCount > 5) {
                             SendUtil.closeAll();
@@ -571,7 +594,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 case 16:                                //回收失败
                     mFunctionTv.setText("回收");
                     isBackFail = true;
-                    ToastUtil.showMessage("20秒未加注300ML");
+                    ToastUtil.showMessage("20秒未回收300ML");
                     break;
                 case 7:                                 //加注失败
                     mFunctionTv.setText("加注");
@@ -655,6 +678,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 }
                 int initAdInt = Integer.parseInt(initAd, 16);
                 int currentAdInt = Integer.parseInt(mAdNumbwe, 16);
+                Log.d(TAG, "run: " + mJiazhuTime + "  加注量=" + Math.abs(initAdInt - currentAdInt));
                 if (Math.abs(initAdInt - currentAdInt) >= mAddCount) {         //加注了800ML
                     stopCheckAd();
                     if (mIsAfterAdd) {
@@ -666,8 +690,8 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                         message.what = 0;
                         mHandler.sendMessage(message);
                     }
-                } else {
-                    if (mJiazhuTime == 0) {          //时间已经到了还没加注800ML,加注失败
+                } else {                 //时间已经到了还没加注800ML,加注失败
+                    if (mJiazhuTime == 0) {
                         stopCheckAd();
                         Message message = new Message();
                         message.what = 7;

@@ -16,8 +16,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
     <include
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/topbarView"
         layout="@layout/topbar_layout"/>
+    <LinearLayout
+        android:id="@+id/jump_container"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="45dp"
+        android:layout_marginTop="100dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <CheckBox
+            android:id="@+id/jump_box"
+            android:button="@null"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/radio_btn_selcecter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:text="是否跳过一,二步骤"
+            android:layout_marginLeft="15dp"
+            android:textColor="@android:color/white"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
     <RelativeLayout
         android:layout_centerHorizontal="true"
         android:layout_marginTop="230dp"

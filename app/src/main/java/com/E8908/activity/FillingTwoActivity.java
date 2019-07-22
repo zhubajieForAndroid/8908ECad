@@ -209,12 +209,7 @@ public class FillingTwoActivity extends BaseActivity implements View.OnTouchList
     }
 
     private void initData() {
-        //是否是浓缩液版本2019-4-29 15:04:01
-        if (Constants.IS_NONG){
-            mAddBg.setImageResource(R.mipmap.bg_3_2);
-        }else {
-            mAddBg.setImageResource(R.mipmap.bg_3_2_new);
-        }
+        mAddBg.setImageResource(R.mipmap.bg_3_2);
         mToobarBgImage.setImageResource(R.mipmap.top_bar_3_2);
         mAddBg.setOnTouchListener(this);
         IntentFilter intentFilter = new IntentFilter();

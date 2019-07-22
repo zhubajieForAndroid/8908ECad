@@ -88,9 +88,11 @@ public abstract class Protocol {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                Gson gson = new Gson();
-                String string = response.body().string();
-                parseData(gson,string);
+                if (response.isSuccessful()) {
+                    Gson gson = new Gson();
+                    String string = response.body().string();
+                    parseData(gson, string);
+                }
             }
         });
     }

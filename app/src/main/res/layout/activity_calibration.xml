@@ -47,7 +47,7 @@
                     android:src="@mipmap/btn_save_s"/>
             </LinearLayout>
             <LinearLayout
-                android:layout_marginTop="218dp"
+                android:layout_marginTop="186dp"
                 android:layout_marginLeft="63dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
@@ -94,7 +94,17 @@
                 android:src="@mipmap/btn_over_normal"/>
         </RelativeLayout>
     </LinearLayout>
-
+    <TextView
+        android:id="@+id/oil_number"
+        android:gravity="center"
+        android:layout_marginStart="195dp"
+        android:layout_marginBottom="200dp"
+        android:layout_alignParentBottom="true"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/blue"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"/>
     <ImageView
         android:id="@+id/back_btn"
         android:src="@mipmap/back_red"

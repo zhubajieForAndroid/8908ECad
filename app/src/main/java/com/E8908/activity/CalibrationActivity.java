@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -24,10 +23,12 @@ import com.E8908.util.SendUtil;
 import com.E8908.widget.SetXishuDialog;
 import com.E8908.widget.ToastUtil;
 
+import java.text.DecimalFormat;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class CalibrationActivity extends BaseActivity implements View.OnClickListener, SetXishuDialog.OnSendOpenListener {
+public class CalibrationActivity extends BaseActivity implements View.OnClickListener, SetXishuDialog.OnSendOpenListener, View.OnTouchListener {
 
     private static final String TAG = "CalibrationActivity";
     @Bind(R.id.toobar_bg_image)
@@ -64,6 +65,9 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
     TextView mTemperatureState;
     @Bind(R.id.set_btn)
     Button mSetBtn;
+    @Bind(R.id.oil_number)
+    TextView mOilNumber;
+    private float mInitNumber = 1000;         //默认标定油量
     private boolean mIsYesData = false;
     private int mParseInt;      //电子秤AD值
     private boolean isOneKeep = false;//第一步是否保存
@@ -83,7 +87,14 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
         mStepTwoBtn.setClickable(false);
 
         SendUtil.setWorkState(4);
+        setNumberStr();
         initData();
+    }
+
+    private void setNumberStr() {
+        DecimalFormat mFormat = new DecimalFormat(".00");
+        String formatNum = mFormat .format(mInitNumber/100);
+        mOilNumber.setText(formatNum);
     }
 
     @Override
@@ -240,14 +251,7 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
         mStepTwoBtn.setOnClickListener(this);
         mStepThreeBtnResult.setOnClickListener(this);
         mSetBtn.setOnClickListener(this);
-        mContainer.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                return false;
-            }
-        });
+        mContainer.setOnTouchListener(this);
     }
 
     private void initData() {
@@ -293,7 +297,7 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
                     mStepTwoData.setText(spadd.getInt("addint", 0) + "");
                     mStepTwoBtn.setClickable(false);
                     mStepThreeBtnResult.setClickable(true);
-                    mResult = 10000 / (mAddint - mAdInt);
+                    mResult = (mInitNumber*10) / (mAddint - mAdInt);
                     mResult *= 10000;
                     mStepThreeDataResult.setText((int) mResult + "");
                 }
@@ -309,7 +313,7 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
                 SendUtil.sendMessage(three, MyApplication.getOutputStream());
                 break;
             case R.id.set_btn:                          //设置系数
-                SetXishuDialog dialog = new SetXishuDialog(this,R.style.dialog);
+                SetXishuDialog dialog = new SetXishuDialog(this, R.style.dialog);
                 dialog.setOnSendOpenListener(this);
                 dialog.show();
                 break;
@@ -333,5 +337,28 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
     protected void onDestroy() {
         super.onDestroy();
         SendUtil.setWorkState(0);
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+        if ((x >= 130 && x <= 186) && (y >= 455 && y <= 500)) {              //减
+            SendUtil.controlVoice();
+            if (mInitNumber < 2000){
+                mInitNumber ++;
+                setNumberStr();
+            }
+        } else if ((x >= 305 && x <= 355) && (y >= 458 && y <= 500)) {              //加
+            SendUtil.controlVoice();
+            if (mInitNumber > 100){
+                mInitNumber --;
+                setNumberStr();
+            }
+        } else {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+        return false;
     }
 }

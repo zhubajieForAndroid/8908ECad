@@ -82,15 +82,9 @@ public class WifiActivity extends BaseActivity implements View.OnClickListener, 
     private AddNewWifiDialog mWifiDialog;
     private boolean mIsYesData = false;
     private PassworldDialog mDialog;
-<<<<<<< Updated upstream:app/src/main/java/com/cad/activity/WifiActivity.java
     private WifiAdapter mAdapter;
     private Timer mWifiScanTimer;
     private ScanTimerTask mScanTimerTask;
-=======
-    private Timer mWifiScanTimer;
-    private ScanTimerTask mScanTimerTask;
-    private WifiAdapter mAdapter;
->>>>>>> Stashed changes:app/src/main/java/com/E8908/activity/WifiActivity.java
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -203,11 +197,8 @@ public class WifiActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private void initData() {
-<<<<<<< Updated upstream:app/src/main/java/com/cad/activity/WifiActivity.java
-=======
         mCheckboxWifi.setOnCheckedChangeListener(this);
         mCheckboxWifi.setChecked(mWifiUtils.wifiIsEnabled());
->>>>>>> Stashed changes:app/src/main/java/com/E8908/activity/WifiActivity.java
         mAdapter = new WifiAdapter(this, mWifiList, mWifiUtils);
         mWifiListview.setAdapter(mAdapter);
         mAnimation = AnimationUtils.loadAnimation(this, R.anim.refreshing_animation);
@@ -304,27 +295,8 @@ public class WifiActivity extends BaseActivity implements View.OnClickListener, 
         }
     }
 
-<<<<<<< Updated upstream:app/src/main/java/com/cad/activity/WifiActivity.java
-=======
-    private void startScanWifiTask() {
-        if (mWifiScanTimer == null)
-            mWifiScanTimer = new Timer();
-        if (mScanTimerTask == null) {
-            mScanTimerTask = new ScanTimerTask();
-            mWifiScanTimer.schedule(mScanTimerTask, 0, 8000);
-        }
-    }
 
-    private void stopScanWifiTask() {
-        if (mWifiScanTimer != null) {
-            mWifiScanTimer.cancel();
-            mWifiScanTimer = null;
-        }
-        if (mScanTimerTask != null) {
-            mScanTimerTask.cancel();
-            mScanTimerTask = null;
-        }
-    }
+
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -339,17 +311,13 @@ public class WifiActivity extends BaseActivity implements View.OnClickListener, 
         }
     }
 
->>>>>>> Stashed changes:app/src/main/java/com/E8908/activity/WifiActivity.java
     private class ScanTimerTask extends TimerTask {
         @Override
         public void run() {
             scaleWifi();
         }
     }
-<<<<<<< Updated upstream:app/src/main/java/com/cad/activity/WifiActivity.java
-=======
 
->>>>>>> Stashed changes:app/src/main/java/com/E8908/activity/WifiActivity.java
     //监听wifi状态
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override

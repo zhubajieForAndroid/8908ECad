@@ -34,6 +34,7 @@ import com.E8908.util.DataUtil;
 import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.OkhttpManager;
 import com.E8908.util.SendUtil;
+import com.E8908.util.StringUtils;
 import com.E8908.widget.ToastUtil;
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleScanCallback;
@@ -108,6 +109,8 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     private String mDeviceMac;
     private String mDeviceName;
     private boolean isLoadData = true;
+    private CheckBox mJumpBox;
+    private SharedPreferences mJumpStateInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +152,15 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         intentFilter.addAction(Constants.ACTIVITY_STATE);
         registerReceiver(receiver, intentFilter);
 
+        //跳过第一,二步骤
+        findViewById(R.id.jump_container).setOnClickListener(this);
+        mJumpBox = findViewById(R.id.jump_box);
+        //读取保存的标记
+        mJumpStateInfo = getSharedPreferences("jumpStateInfo", 0);
+        boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+        mJumpBox.setChecked(isJump);
+
+
         initBlue();
     }
 
@@ -182,7 +194,8 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         public void onResponse(Call call, Response response) throws IOException {
             boolean successful = response.isSuccessful();
             if (successful) {
-                String string = response.body().string();
+            String string = response.body().string();
+
                 if (!TextUtils.isEmpty(string) && !"".equals(string)) {
                     Gson gson = new Gson();
                     final YunInfoBean yunInfoBean = gson.fromJson(string, YunInfoBean.class);
@@ -220,13 +233,12 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
 
     private void initBlue() {
         mDeviceName = mDeviceInfoSp.getString("deviceName", "");
-        if (!TextUtils.isEmpty(mDeviceName) && !"".equals(mDeviceName)) {          //已经有蓝牙了
+        mDeviceMac = mDeviceInfoSp.getString("deviceMac", "");
+        if (StringUtils.checkBleNameAndMac(mDeviceName) && StringUtils.checkBleNameAndMac(mDeviceMac)) {          //已经有蓝牙了
             isScanBle = false;
             isSelectBle = true;         //如果本地已经保存就默认选中了蓝牙
             mNoScan.setVisibility(View.VISIBLE);
             mRecyclerBle.setVisibility(View.GONE);
-            mDeviceMac = mDeviceInfoSp.getString("deviceMac", "");
-
             mBlueName.setText(mDeviceName);
         } else {
             isScanBle = true;
@@ -433,6 +445,12 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         if ((x >= 25 && x <= 290) && (y >= 660 && y <= 795)) {                //返回
             finish();
         } else if ((x >= 540 && x <= 1230) && (y >= 709 && y <= 795)) {         //下一步
+            //保存是否跳过第一二步骤的标记
+            boolean checked = mJumpBox.isChecked();
+            SharedPreferences.Editor edit = mJumpStateInfo.edit();
+            edit.putBoolean("isJump",checked);
+            edit.apply();
+
             //判断蓝牙和车牌号是否选中
             SendUtil.controlVoice();
             Intent intent = new Intent(this, MaintainThreeActivity.class);
@@ -508,6 +526,13 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
                     mBleRadio.setChecked(false);
                 } else {
                     mBleRadio.setChecked(true);
+                }
+                break;
+            case R.id.jump_container:       //是否跳过第一二步骤
+                if (mJumpBox.isChecked()){
+                    mJumpBox.setChecked(false);
+                }else {
+                    mJumpBox.setChecked(true);
                 }
                 break;
         }

@@ -2,50 +2,41 @@ package com.E8908.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.E8908.adapter.HomeVideoPagerAdapter;
-import com.E8908.impl.CheckGasHistoryPersenterImpl;
-import com.E8908.impl.UpDataAppPersenterImpl;
-import com.E8908.util.FileUtil;
-import com.E8908.view.CheckGasHistoryView;
+import com.E8908.util.BItmapUtil;
 import com.E8908.util.OkhttpManager;
 import com.E8908.R;
 import com.E8908.base.BaseActivity;
 import com.E8908.base.MyApplication;
-import com.E8908.bean.CheckGasHistoryBean;
 import com.E8908.bean.RowsBean;
 import com.E8908.conf.Constants;
-import com.E8908.util.CheckVersion;
 import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
-import com.E8908.view.UpdataView;
+import com.E8908.util.StringUtils;
 import com.E8908.widget.ActivationDialog;
-import com.E8908.widget.InputIdDialog;
+import com.E8908.widget.BitmapUtil;
 import com.E8908.widget.IsLockDialog;
+import com.E8908.widget.JurisdictionDialog;
 import com.E8908.widget.LinkSeverDialog;
-import com.E8908.widget.ScoreView;
 import com.E8908.widget.StopDialog;
 import com.E8908.widget.ToastUtil;
-import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadListener;
-import com.liulishuo.filedownloader.FileDownloader;
+import com.tencent.bugly.beta.Beta;
 
 
 import org.json.JSONArray;
@@ -67,7 +58,7 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 
-public class MainActivity extends BaseActivity implements View.OnClickListener, InputIdDialog.OnSendOpenListener, View.OnTouchListener, UpdataView {
+public class MainActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener {
 
     private static final String TAG = "MainActivity";
     @Bind(R.id.message_state)
@@ -119,11 +110,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private TextView mSurplusOil;
     private List<RowsBean> mResponse;
     private double mCurrentState;
-    final static int COUNTS = 5;//点击次数
-    final static long DURATION = 3 * 1000;//规定有效时间
-    long[] mHits = new long[COUNTS];
-    private FileDownloader mFileDownloader;
-    private UpDataAppPersenterImpl mUpDataAppPersenter;
+    private SharedPreferences mJumpStateInfo;
+    private JurisdictionDialog mJuDialog;
 
 
     @Override
@@ -135,11 +123,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mDialog = new ActivationDialog(this, R.style.dialog);
         mStopDialog = new StopDialog(this, R.style.dialog);
         mLinkSeverDialog = new LinkSeverDialog(this, R.style.dialog, R.mipmap.popovers_2);
-        FileDownloader.setup(this);
-        mFileDownloader = FileDownloader.getImpl();
-
-
-
+        //输入权限码开启前门弹窗
+        mJuDialog = new JurisdictionDialog(this, R.style.dialog);
+        mJuDialog.setOnCheckJListener(this);
         initView();
         initData();
         //加载视频
@@ -153,6 +139,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         HomeVideoPagerAdapter adapter = new HomeVideoPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
+        //检查更新
+        Beta.checkUpgrade();
     }
 
 
@@ -214,7 +202,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
-            Log.d(TAG, "isYesData: 断开了连接");
         }
         isYesData = false;
     }
@@ -237,7 +224,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mEquipmentNumber = DataUtil.getEquipmentNumber(buffer);
         if (!TextUtils.isEmpty(mEquipmentNumber))
             mEquipmentID.setText(mEquipmentNumber);
-
         //药液量
         mResultRatioNumbwe = Integer.parseInt(riseNumbwe, 16);
         //设置剩余量
@@ -365,9 +351,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
         });
 
-        //检查更新
-        mUpDataAppPersenter = new UpDataAppPersenterImpl(this);
-        mUpDataAppPersenter.loadData();
+        //是否跳过第一二步骤的标记
+        mJumpStateInfo = getSharedPreferences("jumpStateInfo", 0);
     }
 
     private void loadRankData() {
@@ -470,13 +455,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.tab_linearlayout_routine:                 //常规模式
                 if ("0".equals(mIsProhibit)) {                  //检测到打开了常规,只能使用常规模式
+                    SendUtil.closeAll();
                     //在点击常规和深度保养时检测当前药液量,如果大于20.5升就提示(新药液桶药液过多,不能再加注药液了)
                     if (mResultRatioNumbwe < 20500) {
                         if (mResultRatioNumbwe > 1000) {    //检测药液量是否大于1000ML
-                            SendUtil.controlVoice();
-                            mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                            mIntent.putExtra("isRoutine", true);
-                            startActivity(mIntent);
+                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+                            if (isJump) {                //跳过了第一二步骤
+                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
+                                mIntent.putExtra("isRoutine", true);
+                                startActivity(mIntent);
+                            } else {
+                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
+                                mIntent.putExtra("isRoutine", true);
+                                startActivity(mIntent);
+                            }
+
                         } else {
                             ToastUtil.showMessage("药液不足1L,请加注");
                         }
@@ -491,9 +484,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                                         mStopDialog.dismiss();
                                         if (mResultRatioNumbwe > 1000) {
                                             SendUtil.controlVoice();
-                                            mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                                            mIntent.putExtra("isRoutine", true);
-                                            startActivity(mIntent);
+                                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+                                            if (isJump) {                //跳过了第一二步骤
+                                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
+                                                mIntent.putExtra("isRoutine", true);
+                                                startActivity(mIntent);
+                                            } else {
+                                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
+                                                mIntent.putExtra("isRoutine", true);
+                                                startActivity(mIntent);
+                                            }
                                         } else {
                                             ToastUtil.showMessage("药液不足1L,请加注");
                                         }
@@ -508,12 +508,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.tab_linearlayout_depth:                    //自定义模式
                 if ("1".equals(mIsProhibit)) {      //检测关闭了常规,可以使用自定义模式
+                    SendUtil.closeAll();
                     if (mResultRatioNumbwe < 20500) {
                         if (mResultRatioNumbwe > 1000) {
-                            SendUtil.controlVoice();
-                            mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                            mIntent.putExtra("isRoutine", false);
-                            startActivity(mIntent);
+                            SendUtil.closeAll();
+                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+                            if (isJump) {                //跳过了第一二步骤
+                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
+                                mIntent.putExtra("isRoutine", false);
+                                startActivity(mIntent);
+                            } else {
+                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
+                                mIntent.putExtra("isRoutine", false);
+                                startActivity(mIntent);
+                            }
                         } else {
                             ToastUtil.showMessage("药液不足1L,请加注");
                         }
@@ -528,9 +536,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                                         mStopDialog.dismiss();
                                         if (mResultRatioNumbwe > 1000) {
                                             SendUtil.controlVoice();
-                                            mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                                            mIntent.putExtra("isRoutine", false);
-                                            startActivity(mIntent);
+                                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+                                            if (isJump) {                //跳过了第一二步骤
+                                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
+                                                mIntent.putExtra("isRoutine", false);
+                                                startActivity(mIntent);
+                                            } else {
+                                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
+                                                mIntent.putExtra("isRoutine", false);
+                                                startActivity(mIntent);
+                                            }
                                         } else {
                                             ToastUtil.showMessage("药液不足1L,请加注");
                                         }
@@ -576,9 +591,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     protected void onDestroy() {
         super.onDestroy();
         MyApplication.closeSerialPort();
-        if (mFileDownloader != null){
-            mFileDownloader.pauseAll();
-        }
+
     }
 
 
@@ -598,50 +611,35 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
 
     @Override
-    public void onOpen(int state) {
-        if (state == 1) {        //前门
-            SendUtil.openQian();
-        } else {
-            SendUtil.openHou();
-        }
-    }
-
-    @Override
     public boolean onTouch(View v, MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
         if ((x >= 820 && x <= 915) && (y >= 12 && y <= 76)) {       //前门
-            System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
-            //实现左移，然后最后一个位置更新距离开机的时间，如果最后一个时间和最开始时间小于DURATION，即连续10次点击
-            mHits[mHits.length - 1] = SystemClock.uptimeMillis();
-            if (mHits[0] >= (SystemClock.uptimeMillis() - DURATION)) {
-                InputIdDialog dialog = new InputIdDialog(this, R.style.dialog, TextUtils.isEmpty(mEquipmentNumber) ? "00000000" : mEquipmentNumber, 1);
-                dialog.setOnSendOpenListener(this);
-                dialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                mJuDialog.setEquipmentId(mEquipmentNumber, 1);
+                mJuDialog.show();
             }
+
         } else if ((x >= 935 && x <= 1025) && (y >= 12 && y <= 76)) {    //后门
-            System.arraycopy(mHits, 1, mHits, 0, mHits.length - 1);
-            //实现左移，然后最后一个位置更新距离开机的时间，如果最后一个时间和最开始时间小于DURATION，即连续10次点击
-            mHits[mHits.length - 1] = SystemClock.uptimeMillis();
-            if (mHits[0] >= (SystemClock.uptimeMillis() - DURATION)) {
-                InputIdDialog dialog = new InputIdDialog(this, R.style.dialog, TextUtils.isEmpty(mEquipmentNumber) ? "00000000" : mEquipmentNumber, 2);
-                dialog.setOnSendOpenListener(this);
-                dialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                mJuDialog.setEquipmentId(mEquipmentNumber, 0);
+                mJuDialog.show();
             }
         }
         return false;
     }
 
-    @Override
-    public void onFaild(String msg) {
-        //ToastUtil.showMessage(msg);
-    }
 
     @Override
-    public void onSuccess(String downUrl, String upText) {
-
-        //下载Apk
-        mFileDownloader.create(downUrl).setPath(FileUtil.getUpdataPath().getAbsolutePath()).setListener(null).start();
+    public void onCkcekState(int state, boolean isScurress,String msg) {
+        if (isScurress) {
+            if (state == 1) {        //前门
+                SendUtil.openQian();
+            } else {
+                SendUtil.openHou();
+            }
+        }else {
+            ToastUtil.showMessage(msg);
+        }
     }
-
 }

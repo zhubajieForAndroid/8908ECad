@@ -8,7 +8,7 @@ package com.E8908.conf;
 public class Constants {
     public static final String HOST = "https://www.haoanda.cn";
     public static final String LOCAL = "https://www.haoanda.cn";//"http://192.168.2.119:8080";
-    public static final String YUN_HOST = "https://cykj.wlyinfo.com/base-api";
+    public static final String YUN_HOST = "https://cykj.wlyinfo.com/base-api";//https://cykj.wlyinfo.com/base-api
     public static final String DATA = "sockData";
     public static final String BLE_DATA = "ble_data";           //蓝牙数据
     public static final String PUSH_URL = "pushUrl";
@@ -27,9 +27,8 @@ public class Constants {
     public static final String CREATE_USER_NAME = "administrator1";     //创建报告的创建人
     public static final int LINK_SEVER_TIME_OUT = 15;            //连接服务器超时时间(15秒)
     //---------------------------------------------更新版本修改开始---------------------------------------------------
-    public static final String UPLOAD_NAME = "8908EBLE";            //更新项目名字
-    public static final String DOWN_NAME = "8908EBLE";            //下载APk名字
-    public static final boolean IS_NONG = false;            //是否是浓缩液版本
+    public static final String UPLOAD_NAME = "new8908EBLE";            //更新项目名字
+    public static final String DOWN_NAME = "new8908EBLE";            //下载APk名字
     //---------------------------------------------更新版本修改结束---------------------------------------------------
     public static final int PAGECOUNTS = 20;            //气体检测历史数据的一页的条目数
     public static final String PAGE_SIZE = "20";            //列表的每页条数
@@ -59,7 +58,7 @@ public class Constants {
         //删除已有设备
         public static final String DELETE_EQUIPMENT = HOST + "/weixin/manage/cancelAllocation";
         //激活的ID根据id(公司标记)取激活二维码
-        public static final String ID = "021";
+        public static final String ID = "014";
         //请求设备排名数据
         public static final String EQUIPMENT_RANK_DATA = HOST + "/weixin/manage/getRankingOf8908E";
         //获取设备历史的加注量和常规深度的保养次数

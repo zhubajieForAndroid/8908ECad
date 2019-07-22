@@ -2,6 +2,7 @@ package com.E8908.util;
 
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -459,5 +461,17 @@ public class DataUtil {
     public static String getTemperatureByCheck(byte[] array){
         String hexString = castBytesToHexString(array);
         return hexString.substring(96, 100);
+    }
+
+    /**
+     * 获取DTU服务器的IP地址
+     */
+    public static String getServiceIp(byte[] array){
+        //116.62.209.62
+        //[42, 25, 33, 49, 49, 54, ., 54, 50, ., 50, 48, 57, ., 54, 50, 32, 32, 32, 32, 32, 32, 32, 17, 35]
+        String data = ""+(char)array[3]+(char)array[4]+(char)array[5]+(char)array[6]+(char)array[7]+(char)array[8]+(char)array[9]
+                +(char)array[10]+(char)array[11]+(char)array[12]+(char)array[13]+(char)array[14]+(char)array[15]+(char)array[16]+
+                (char)array[17]+(char)array[18]+(char)array[19]+(char)array[20]+(char)array[21]+(char)array[22];
+       return data.trim();
     }
 }

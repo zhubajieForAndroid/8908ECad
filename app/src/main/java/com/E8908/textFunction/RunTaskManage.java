@@ -93,9 +93,9 @@ public class RunTaskManage {
                     Message message = new Message();
                     switch (mState) {
                         case "雾化":
+                            Log.d(TAG, "run: "+mCheckCount+"   "+(mCurrentA < mRunA));
                             if (mCheckCount >= 5) {
                                 if (mCurrentA < mRunA){     //雾化失败
-                                    //stopAddTask();
                                     pauseTask();
                                     message.what = 13;
                                 }else {

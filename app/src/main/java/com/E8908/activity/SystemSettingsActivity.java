@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
@@ -21,6 +22,7 @@ import com.E8908.util.DataUtil;
 import com.E8908.util.FileUtil;
 import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.SendUtil;
+import com.E8908.widget.JurisdictionDialog;
 import com.E8908.widget.LoginDialog;
 import com.E8908.widget.OnlineDialog;
 import com.E8908.widget.SetDateDialog;
@@ -42,7 +44,7 @@ import java.util.Map;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class SystemSettingsActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener {
+public class SystemSettingsActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener {
 
     private static final String TAG = "SystemSettingsActivity";
     @Bind(R.id.tab_image_back_state)
@@ -81,8 +83,6 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
     private boolean mIsYesData = false;
     private boolean isFinish = false;
     private int currentState;
-    private int count;//点击的次数
-    private long mStartTime;
     private boolean isPower = false;//是否有权限
     private List<String> mList;
     private int mResultInt;
@@ -96,6 +96,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
     private String mDepthWorkResult;
     private String mRoutineResult;
     private String mAddTaotle;
+    private JurisdictionDialog mJuDialog;
+    private boolean isData = true;          //ID是否有历史数据
 
 
     @Override
@@ -104,6 +106,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
         setContentView(R.layout.activity_system_settings);
         ButterKnife.bind(this);
         mStopDialog = new StopDialog(this, R.style.dialog);
+        mJuDialog = new JurisdictionDialog(this,R.style.dialog);
+        mJuDialog.setOnCheckJListener(this);
         initListener();
         initData();
     }
@@ -340,13 +344,20 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                 break;
             case 10:
                 if (isSuccess) {
-                    currentState = 11;
-                    //设置常规保养次数
-                    SystemClock.sleep(100);
-                    if (!TextUtils.isEmpty(mRoutineResult)) {
-                        int i = Integer.parseInt(mRoutineResult, 16);
-                        SendUtil.setRoutineNumber(i);
+                    if (isData){
+                        currentState = 11;
+                        //设置常规保养次数
+                        SystemClock.sleep(100);
+                        if (!TextUtils.isEmpty(mRoutineResult)) {
+                            int i = Integer.parseInt(mRoutineResult, 16);
+                            SendUtil.setRoutineNumber(i);
+                        }
+                    }else {
+                        currentState = 0;
+                        FileUtil.putSendState(true);
+                        ToastUtil.showMessage("设置成功,重启生效");
                     }
+
                 } else {
                     currentState = 10;
                     SystemClock.sleep(100);
@@ -460,25 +471,6 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
         mBackOil.setOnClickListener(this);
         mOpenHou.setOnClickListener(this);
         mTouchBg.setOnTouchListener(this);
-        //点击5下释放权限
-        mMessageState.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (count == 0) {
-                    mStartTime = System.currentTimeMillis();
-                }
-                count++;
-                if (count == 5) {
-                    count = 0;
-                    long stopTime = System.currentTimeMillis();
-                    if ((stopTime - mStartTime) < 2000) {
-                        //2秒之内点击5下
-                        isPower = true;
-                        ToastUtil.showMessage("获取权限成功");
-                    }
-                }
-            }
-        });
     }
 
     @Override
@@ -515,115 +507,45 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
         float x = event.getX();
         float y = event.getY();
         if ((x >= 32 && x <= 1223) && (y >= 6 && y <= 56)) {                //电子秤校准
-            if (isPower) {
-                SendUtil.controlVoice();
-                Intent intent = new Intent(this, CalibrationActivity.class);
-                startActivity(intent);
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,2);
+                mJuDialog.show();
             }
         } else if ((x >= 31 && x <= 1220) && (y >= 70 && y <= 120)) {         //设备上线
-            if (isPower) {
-                SendUtil.controlVoice();
-                OnlineDialog dialog = new OnlineDialog(this, R.style.dialog);
-                dialog.setBitmap(R.mipmap.popovers_onlin_1);
-                dialog.show();
-                dialog.setOnEquipmentIDlistener(new OnlineDialog.OnEquipmentIDlistener() {
-                    @Override
-                    public void idListener(String id) {
-                        if (!TextUtils.isEmpty(id) && id.length() == 8) {
-                            mList = DataUtil.stringToA(id);
-                            currentState = 4;
-                            SendUtil.setEquipentId(mList);
-                        }
-                    }
-                });
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,3);
+                mJuDialog.show();
             }
         } else if ((x >= 36 && x <= 1225) && (y >= 138 && y <= 190)) {         //WiFi
             SendUtil.controlVoice();
             Intent i = new Intent(this, WifiActivity.class);
             startActivity(i);
         } else if ((x >= 34 && x <= 1230) && (y >= 203 && y <= 254)) {         //硬件版本
-            if (isPower) {
-                SendUtil.controlVoice();
-                mDialog.setBitmap(R.mipmap.popovers_3, true);
-                mDialog.show();
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,4);
+                mJuDialog.show();
             }
         } else if ((x >= 34 && x <= 1226) && (y >= 333 && y <= 387)) {         //主控版本
-            if (isPower) {
-                SendUtil.controlVoice();
-                mDialog.setBitmap(R.mipmap.popovers_5, false);
-                mDialog.show();
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,5);
+                mJuDialog.show();
             }
         } else if ((x >= 33 && x <= 1230) && (y >= 400 && y <= 450)) {         //日期
-            if (isPower) {
-                SendUtil.controlVoice();
-                mDateDialog.setBitmap(R.mipmap.popovers_8);
-                mDateDialog.show();
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,6);
+                mJuDialog.show();
             }
         } else if ((x >= 33 && x <= 1223) && (y >= 268 && y <= 322)) {         //回复出厂设置
-            if (isPower) {
-                final LoginDialog systemDialog = new LoginDialog(this, R.style.dialog, "");
-                NavigationBarUtil.focusNotAle(systemDialog.getWindow());
-                systemDialog.show();
-                //显示虚拟栏的时候 隐藏
-                NavigationBarUtil.hideNavigationBar(systemDialog.getWindow());
-                //再清理失能焦点
-                NavigationBarUtil.clearFocusNotAle(systemDialog.getWindow());
-                systemDialog.setOnLoninnListener(new LoginDialog.OnLonInListener() {
-                    @Override
-                    public void loginListener(Boolean b) {
-                        if (b) {
-                            mStopDialog.setBitmap(R.mipmap.popovers_danger_1);
-                            mStopDialog.setOnMakeSuerListener(new StopDialog.OnMakeSuerListener() {
-                                @Override
-                                public void isMakeUser(boolean b) {
-                                    if (b) {
-                                        if (!"00000000".equals(mEquipmentNumber)) {
-                                            getEquipmentUser();
-                                        } else {
-                                            currentState = 5;
-                                            SendUtil.renewData();
-                                        }
-                                    }
-                                }
-                            });
-
-                            mStopDialog.show();
-                        }
-                    }
-                });
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,7);
+                mJuDialog.show();
             }
-
         } else if ((x >= 35 && x <= 1227) && (y >= 466 && y <= 516)) {                             //设置ID号
-            if (isPower) {
-                if ("00000000".equals(mEquipmentNumber)) {
-                    SetIDDialog dialog = new SetIDDialog(this, R.style.dialog);
-                    dialog.setBitmap(R.mipmap.popovers_7);
-                    dialog.show();
-                    dialog.setDateResultListener(new SetIDDialog.DateResultListener() {
-                        @Override
-                        public void dateResult(String date) {
-                            //请求旧ID号的历史记录
-                            loadDataForOldID(date);
-                        }
-                    });
-                } else {
-                    ToastUtil.showMessage("已经有ID号了");
-                }
-            } else {
-                ToastUtil.showMessage("无权限");
+            if (!TextUtils.isEmpty(mEquipmentNumber)){
+                mJuDialog.setEquipmentId(mEquipmentNumber,8);
+                mJuDialog.show();
             }
+
         }else if ((x >= 33 && x <= 1227) && (y >= 533 && y <= 583)) {                             //关于设备
             SendUtil.controlVoice();
             Intent intent = new Intent(this, AboutEquipmentActivity.class);
@@ -652,13 +574,13 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     }
                 });
             }
-
             @Override
             public void parseData(Gson gson, String s) {
                 try {
                     JSONObject jsonObject = new JSONObject(s);
                     String total = jsonObject.getString("total");
                     if ("1".equals(total)) {
+                        isData = true;
                         JSONArray jsonArray = jsonObject.getJSONArray("rows");
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonObject1 = jsonArray.getJSONObject(i);
@@ -671,15 +593,15 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                                 mRoutineResult = jarInfo.substring(4, 8);
                                 //历史记录的加注总升数
                                 mAddTaotle = vehicleStatus.substring(0, 2) + jarInfo.substring(8);
-                                SystemClock.sleep(1000);
-                                mList = DataUtil.stringToA(id);
-                                currentState = 10;
-                                SendUtil.setEquipentId(mList);
                             }
                         }
                     }else {
-                        FileUtil.putSendState(true);
+                        isData = false;
                     }
+                    SystemClock.sleep(1000);
+                    mList = DataUtil.stringToA(id);
+                    currentState = 10;
+                    SendUtil.setEquipentId(mList);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     FileUtil.putSendState(true);
@@ -710,7 +632,6 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     });
 
                 }
-
                 @Override
                 public void parseData(Gson gson, String s) {
                     try {
@@ -771,4 +692,97 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
     }
 
 
+    @Override
+    public void onCkcekState(int state, boolean isScurress,String msg) {
+        if (isScurress){
+            switch (state){
+                case 2:                     //电子秤校准
+                    SendUtil.controlVoice();
+                    Intent intent = new Intent(this, CalibrationActivity.class);
+                    startActivity(intent);
+                    break;
+                case 3:                     //设备上线
+                    SendUtil.controlVoice();
+                    OnlineDialog dialog = new OnlineDialog(this, R.style.dialog);
+                    dialog.setBitmap(R.mipmap.popovers_onlin_1);
+                    dialog.show();
+                    dialog.setOnEquipmentIDlistener(new OnlineDialog.OnEquipmentIDlistener() {
+                        @Override
+                        public void idListener(String id) {
+                            if (!TextUtils.isEmpty(id) && id.length() == 8) {
+                                mList = DataUtil.stringToA(id);
+                                currentState = 4;
+                                SendUtil.setEquipentId(mList);
+                            }
+                        }
+                    });
+                    break;
+                case 4:                     //硬件版本
+                    SendUtil.controlVoice();
+                    mDialog.setBitmap(R.mipmap.popovers_3, true);
+                    mDialog.show();
+                    break;
+                case 5:                     //主控版本
+                    SendUtil.controlVoice();
+                    mDialog.setBitmap(R.mipmap.popovers_5, false);
+                    mDialog.show();
+                    break;
+                case 6:                     //生产日期
+                    SendUtil.controlVoice();
+                    mDateDialog.setBitmap(R.mipmap.popovers_8);
+                    mDateDialog.show();
+                    break;
+                case 7:                     //恢复出厂设置
+                    final LoginDialog systemDialog = new LoginDialog(this, R.style.dialog, "");
+                    NavigationBarUtil.focusNotAle(systemDialog.getWindow());
+                    systemDialog.show();
+                    //显示虚拟栏的时候 隐藏
+                    NavigationBarUtil.hideNavigationBar(systemDialog.getWindow());
+                    //再清理失能焦点
+                    NavigationBarUtil.clearFocusNotAle(systemDialog.getWindow());
+                    systemDialog.setOnLoninnListener(new LoginDialog.OnLonInListener() {
+                        @Override
+                        public void loginListener(Boolean b) {
+                            if (b) {
+                                mStopDialog.setBitmap(R.mipmap.popovers_danger_1);
+                                mStopDialog.setOnMakeSuerListener(new StopDialog.OnMakeSuerListener() {
+                                    @Override
+                                    public void isMakeUser(boolean b) {
+                                        if (b) {
+                                            if (!"00000000".equals(mEquipmentNumber)) {
+                                                getEquipmentUser();
+                                            } else {
+                                                currentState = 5;
+                                                SendUtil.renewData();
+                                            }
+                                        }
+                                    }
+                                });
+
+                                mStopDialog.show();
+                            }
+                        }
+                    });
+                    break;
+                case 8:                 //设置ID好
+                    if ("00000000".equals(mEquipmentNumber)) {
+                        SetIDDialog d = new SetIDDialog(this, R.style.dialog);
+                        d.setBitmap(R.mipmap.popovers_7);
+                        d.show();
+                        d.setDateResultListener(new SetIDDialog.DateResultListener() {
+                            @Override
+                            public void dateResult(String date) {
+                                //请求旧ID号的历史记录
+                                loadDataForOldID(date);
+                            }
+                        });
+                    } else {
+                        ToastUtil.showMessage("已经有ID号了");
+                    }
+                    break;
+            }
+        }else {
+            ToastUtil.showMessage(msg);
+        }
+    }
 }

@@ -61,8 +61,7 @@ public class BlueToothAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                     } else {
                         //得到扫描设备集合
                         String substring = name.substring(2, 4);
-                        int bleType = Integer.parseInt(substring, 16);
-                        if (bleType != 3) {
+                        if ("3".equals(substring)) {
                             ToastUtil.showMessageLong("该选中的蓝牙仪器不是气体检测仪器,请选择ID号第4位为3的蓝牙仪器");
                         }
                         blueToothItemViewHolder.mCheckBox.setChecked(true);

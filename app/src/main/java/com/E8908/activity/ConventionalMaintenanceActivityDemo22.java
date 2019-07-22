@@ -631,7 +631,12 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                     SendUtil.setWorkState(0);
                 } else {
                     currentState = 10;
-                    SendUtil.closeAll();
+                    if (mDepthThreeRunTime == 0){           //第三阶段的时间是0表示没有开启过第三阶段
+                        SendUtil.closeAll();
+                    }else {                                 //开启过第三阶段
+                        //关闭其他所有的,单独开启6触点
+                        SendUtil.closeOthre();
+                    }
                 }
                 break;
             case 13:
@@ -832,7 +837,17 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
             case 28:
                 if (isSuccess) {
                     currentState = 0;
-                    SendUtil.closeAll();
+                    if (mIsRoutine){
+                        //关闭其他所有的,单独开启6触点
+                        SendUtil.closeOthre();
+                    }else {
+                        if (mDepthThreeRunTime == 0){           //第三阶段的时间是0表示没有开启过第三阶段
+                            SendUtil.closeAll();
+                        }else {                                 //开启过第三阶段
+                            //关闭其他所有的,单独开启6触点
+                            SendUtil.closeOthre();
+                        }
+                    }
                 } else {
                     currentState = 28;
                     SendUtil.setConstructionAfterAndBefore(1);
@@ -1144,7 +1159,9 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                 isStartingThree = true;
                 if (oneRecordThreeTimeSecond >= (mTime * 60)) {          //第三阶段净化运行时间到
                     currentState = 10;
-                    SendUtil.closeAll();
+                    //SendUtil.closeAll();              //负离子净化完成不关闭净化,修改2019年6月20日18:18:32
+                    //关闭其他所有的,单独开启6触点
+                    SendUtil.closeOthre();
                 }
                 oneRecordThreeTimeSecond++;
             }
@@ -2114,7 +2131,20 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         closeOneTask();
         stopThreeTask();
         stopCheckliquidTask();
-        SendUtil.closeAll();
+        if (mIsRoutine){
+            //关闭其他所有的,单独开启6触点
+            SendUtil.closeOthre();
+        }else {
+            if (mIsStar){
+                if (mDepthThreeRunTime == 0){           //第三阶段的时间是0表示没有开启过第三阶段
+                    SendUtil.closeAll();
+                }else {                                 //开启过第三阶段
+                    //关闭其他所有的,单独开启6触点
+                    SendUtil.closeOthre();
+                }
+            }
+        }
+
         if (mInThreeTimer != null) {
             mInThreeTimer.cancel();
             mInThreeTimer = null;

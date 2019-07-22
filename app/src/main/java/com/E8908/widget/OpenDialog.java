@@ -3,6 +3,8 @@ package com.E8908.widget;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -10,9 +12,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.E8908.util.BItmapUtil;
 import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.OkhttpManager;
 import com.E8908.R;
@@ -36,7 +40,7 @@ import okhttp3.Response;
  * Created by dell on 2018/4/2.
  */
 
-public class OpenDialog extends Dialog implements View.OnTouchListener, ReservationCodeDialog.OnLonInListener, DialogInterface.OnDismissListener{
+public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInListener, DialogInterface.OnDismissListener, View.OnClickListener {
 
     private static final String TAG = "OpenDialog";
     private Context mContext;
@@ -57,53 +61,44 @@ public class OpenDialog extends Dialog implements View.OnTouchListener, Reservat
         mContext = context;
 
     }
+
     public void setinit(String equipmentNumber) {
         setContentView(R.layout.view_open);
         mWindow = getWindow();
         WindowManager.LayoutParams lp = mWindow.getAttributes();
         lp.gravity = Gravity.CENTER;
-        lp.width = 763;
-        lp.height = 580;
+        lp.width = 1039;
+        lp.height = 590;
         mWindow.setAttributes(lp);
         setCanceledOnTouchOutside(false);
 
         id = equipmentNumber;
-        ImageView bg = findViewById(R.id.touch_bg);
-        mEr_iv = findViewById(R.id.er_iv);
-        bg.setOnTouchListener(this);
+        mEr_iv = findViewById(R.id.qr_iv);
         mDialog = new ReservationCodeDialog(mContext, R.style.dialog);
         mDialog.setOnLoninnListener(this);
         mLinearLayout = findViewById(R.id.progress_bar);
 
         mOkhttpManager = OkhttpManager.getOkhttpManager();
 
-
-
+        //生成二维码
+        Bitmap bitmap = BItmapUtil.createQRCodeBitmap(equipmentNumber+"&8908E", 400, 400,
+                "UTF-8", "H", "1", Color.BLACK, Color.WHITE);
+        if (bitmap != null)
+            mEr_iv.setImageBitmap(bitmap);
         startTask();
         setOnDismissListener(this);
 
-    }
+        findViewById(R.id.cancle_btn).setOnClickListener(this);
+        findViewById(R.id.queren_btn).setOnClickListener(this);
 
 
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-        if ((x >= 63 && x <= 353) && (y >= 485 && y <= 535)) {                //取消
-            mOnCancelButtonListener.onCancelClick();
-            dismiss();
-        }else if ((x >= 420 && x <= 714) && (y >= 481 && y <= 536)) {            //预约码
-            if (!mDialog.isShowing()) {
-                mDialog.show();
-            }
-        }
-        return false;
     }
+
 
     private void performNetRequest(String reservationCode) {
         Map<String, String> pames = new HashMap<>();
-        pames.put("deviceno", id+"");
-        pames.put("codeValue", reservationCode+"");
+        pames.put("deviceno", id + "");
+        pames.put("codeValue", reservationCode + "");
         mOkhttpManager.doPost(Constants.URLS.CHECK_VINCODE, pames, mCallback);
 
     }
@@ -144,7 +139,7 @@ public class OpenDialog extends Dialog implements View.OnTouchListener, Reservat
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }else {
+            } else {
                 mOnOpenListener.errorMsg("服务器错误");
                 MyApplication.getmHandler().post(new Runnable() {
                     @Override
@@ -158,40 +153,60 @@ public class OpenDialog extends Dialog implements View.OnTouchListener, Reservat
         }
     };
 
-    private void startTask(){
+    private void startTask() {
         if (mTimer == null) {
             mTimer = new Timer();
             mTimer.schedule(new MyTask(), 1000, 1000);
         }
     }
-    private void stopTask(){
-        if (mTimer != null){
+
+    private void stopTask() {
+        if (mTimer != null) {
             mTimer.cancel();
             mTimer = null;
         }
     }
-    public class MyTask extends TimerTask{
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.cancle_btn:                       //取消
+                mOnCancelButtonListener.onCancelClick();
+                dismiss();
+                break;
+            case R.id.queren_btn:                       //输入预约码
+                if (!mDialog.isShowing()) {
+                    mDialog.show();
+                }
+                break;
+        }
+    }
+
+    public class MyTask extends TimerTask {
         @Override
         public void run() {
-            mOkhttpManager.doPost(Constants.URLS.QUERY_START_STATE,id,mStartCallback);
+            mOkhttpManager.doPost(Constants.URLS.QUERY_START_STATE, id, mStartCallback);
         }
     }
 
     private Callback mStartCallback = new Callback() {
         @Override
-        public void onFailure(Call call, IOException e) {}
+        public void onFailure(Call call, IOException e) {
+        }
+
         @Override
         public void onResponse(Call call, Response response) throws IOException {
             String string = response.body().string();
-            if (!TextUtils.isEmpty(string) && string.length()>9){
-                mSubstring = string.substring(8,9);
-                if ("9".equals(mSubstring)){         //收到开机了
+            if (!TextUtils.isEmpty(string) && string.length() > 9) {
+                mSubstring = string.substring(8, 9);
+                if ("9".equals(mSubstring)) {         //收到开机了
                     dismiss();
                     mOnOpenListener.startOpen("9");
                 }
             }
         }
     };
+
     @Override
     public void loginListener(String code) {           //开始验证
         mLinearLayout.setVisibility(View.VISIBLE);
@@ -202,6 +217,7 @@ public class OpenDialog extends Dialog implements View.OnTouchListener, Reservat
     public void onDismiss(DialogInterface dialog) {
         stopTask();
     }
+
     @Override
     public void show() {
         NavigationBarUtil.focusNotAle(mWindow);
@@ -213,6 +229,7 @@ public class OpenDialog extends Dialog implements View.OnTouchListener, Reservat
 
     public interface OnOpenListener {
         void startOpen(String state);
+
         void errorMsg(String msg);
     }
 

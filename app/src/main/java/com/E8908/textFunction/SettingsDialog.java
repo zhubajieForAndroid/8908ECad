@@ -169,7 +169,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.add_time_reduce:          //加注时间减
-                if (mAddTimeInt > 5) {
+                if (mAddTimeInt > 15) {
                     mAddTimeInt--;
                     mAddTime.setText(mAddTimeInt + "");
                 }

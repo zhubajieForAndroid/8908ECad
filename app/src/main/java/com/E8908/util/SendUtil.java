@@ -1,4 +1,5 @@
 package com.E8908.util;
+
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
@@ -8,6 +9,8 @@ import com.E8908.base.MyApplication;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static android.support.constraint.Constraints.TAG;
@@ -31,7 +34,7 @@ public class SendUtil {
                 e.printStackTrace();
             }
             SystemClock.sleep(100);
-       }
+        }
     }
 
     /**
@@ -41,6 +44,7 @@ public class SendUtil {
         int[] arr = {0x2a, 0x07, 0x04, 0x01, 0x14, 0x3c, 0x23};
         SendUtil.sendMessage(arr, MyApplication.getOutputStream());
     }
+
     /**
      * 控制声音5升
      */
@@ -48,6 +52,7 @@ public class SendUtil {
         int[] arr = {0x2a, 0x07, 0x04, 0x05, 0x14, 0x38, 0x23};
         sendMessage(arr, MyApplication.getOutputStream());
     }
+
     /**
      * 开前盖
      */
@@ -95,7 +100,13 @@ public class SendUtil {
         int[] start = {0x2a, 0x06, 0x01, 0x20, 0x0d, 0x23};
         SendUtil.sendMessage(start, MyApplication.getOutputStream());
     }
-
+    /**
+     * 关闭其他所有的触点打开6#触点
+     */
+    public static void closeOthre() {
+        int[] start = {0x2a, 0x06, 0x01, 0x20, 0x0d, 0x23};
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
 
     /**
      * 打开7#8#触点
@@ -309,6 +320,64 @@ public class SendUtil {
      */
     public static void renewData() {
         int[] start = {0x2a, 0x05, 0x0b, 0x24, 0x23};
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 检测DTU模块是否正常
+     */
+    public static void checkDtuIsScurress() {
+        int[] start = {0x2a, 0x05, 0x20, 0x0f, 0x23};
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 查询DTU模块连接服务器的IP地址
+     */
+    public static void queryServiceIp() {
+        int[] start = {0x2a, 0x19, 0x21, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x12, 0x23};
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 设置DTU模块的IP地址
+     */
+    public static void setDtuIp(String ip) {
+        int count = 0;
+        byte[] bytes = ip.getBytes();
+        int[] start = new int[25];
+        //固定前三位
+        start[0] = 0x2a;
+        start[1] = 0x19;
+        start[2] = 0x22;
+
+        int xor = 0;
+        for (int i = 0; i < bytes.length; i++) {
+            xor ^= bytes[i];
+            int result = i + 3;                 //第三位开始赋值
+            if (result < 25) {
+                start[result] = bytes[i];
+                count++;                        //记录赋值了多少位,剩余位补20
+            }
+        }
+
+        for (int i = count + 3; i < start.length - 2; i++) {
+            start[i] = 0x20;
+            xor ^= 0x20;
+        }
+        xor ^= 0x2a ^ 0x19 ^ 0x22;
+        //固定后2位
+        start[23] = xor;
+        start[24] = 0x23;
+        Log.d(TAG, "setDtuIp: "+Arrays.toString(start));
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 查询版本信息
+     */
+    public static void queryVersionInfo(){
+        int[] start = {0x2a, 0x05, 0x23, 0x0c, 0x23};
         SendUtil.sendMessage(start, MyApplication.getOutputStream());
     }
 }

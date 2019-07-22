@@ -185,6 +185,13 @@
         </activity>
         <activity android:name=".textFunction.TextResultActivity">
         </activity>
+        <!-- 腾讯升级 -->
+        <activity
+            android:name="com.tencent.bugly.beta.ui.BetaActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale"
+            android:theme="@android:style/Theme.Translucent"/>
+        <activity android:name=".activity.UpgradeActivity" android:theme="@style/noAnimTheme">
+        </activity>
     </application>
 
 </manifest>

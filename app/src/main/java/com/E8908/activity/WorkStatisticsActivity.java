@@ -16,6 +16,7 @@ import com.E8908.textFunction.TextFunctionActivity;
 import com.E8908.textFunction.TextResultActivity;
 import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
+import com.E8908.widget.JurisdictionDialog;
 import com.E8908.widget.LoginDialog;
 import com.E8908.widget.ToastUtil;
 
@@ -26,7 +27,7 @@ import me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar;
 /**
  * 工作统计界面
  */
-public class WorkStatisticsActivity extends BaseActivity implements View.OnClickListener, LoginDialog.OnLonInListener {
+public class WorkStatisticsActivity extends BaseActivity implements View.OnClickListener, JurisdictionDialog.OnCheckJListener {
     private static final String TAG = "WorkStatisticsActivity";
     @Bind(R.id.toobar_bg_image)
     ImageView mToobarBgImage;
@@ -70,8 +71,8 @@ public class WorkStatisticsActivity extends BaseActivity implements View.OnClick
     Button mTextResult;
 
     private boolean mIsYesData = false;
-    private LoginDialog mLoginDialog;
     private String mEquipmentNumber;
+    private JurisdictionDialog mJuDialog;
 
 
     @Override
@@ -233,8 +234,8 @@ public class WorkStatisticsActivity extends BaseActivity implements View.OnClick
 
     private void initData() {
         mToobarBgImage.setImageResource(R.mipmap.top_bar_4);
-        mLoginDialog = new LoginDialog(this, R.style.dialog, "");
-        mLoginDialog.setOnLoninnListener(this);
+        mJuDialog = new JurisdictionDialog(this,R.style.dialog);
+        mJuDialog.setOnCheckJListener(this);
     }
 
     private void initView() {
@@ -260,8 +261,10 @@ public class WorkStatisticsActivity extends BaseActivity implements View.OnClick
                 finish();
                 break;
             case R.id.text_function:        //功能测试
-                if (!mLoginDialog.isShowing())
-                    mLoginDialog.show();
+                if (!TextUtils.isEmpty(mEquipmentNumber)){
+                    mJuDialog.setEquipmentId(mEquipmentNumber,2);
+                    mJuDialog.show();
+                }
                 break;
             case R.id.text_result:          //查看测试结果
                 if (!TextUtils.isEmpty(mEquipmentNumber)) {
@@ -274,12 +277,12 @@ public class WorkStatisticsActivity extends BaseActivity implements View.OnClick
     }
 
     @Override
-    public void loginListener(Boolean b) {
-        if (b) {
+    public void onCkcekState(int state, boolean isScurress, String mesg) {
+        if (isScurress){
             Intent intent = new Intent(this, TextFunctionActivity.class);
             startActivity(intent);
-        } else {
-            ToastUtil.showMessage("密码错误");
+        }else {
+            ToastUtil.showMessage(mesg);
         }
     }
 }

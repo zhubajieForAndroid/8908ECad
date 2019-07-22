@@ -22,6 +22,7 @@ import com.E8908.widget.OpenDialog;
 import com.E8908.widget.ToastUtil;
 import com.clj.fastble.data.BleDevice;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import butterknife.Bind;
@@ -51,7 +52,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     private String mEquipmentNumber;
     private OpenDialog mOpenDialog;
     private int mCurrentState;
-    private boolean isByReady ;    //是否准备就绪
+    private boolean isByReady;    //是否准备就绪
     private boolean isStartActivity = true;
     private HashMap<String, String> mPames;
     private String mPk;
@@ -59,6 +60,8 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     private String mBleDeviceMac;
     private String mEquipmentID;
     private String mCarNumber;
+    private boolean isQueryVersion = true;          //是否查询版本信息
+    private int mVersionState = -1;              //默认是修理厂配置
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,10 +113,23 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         if (size == Constants.DATA_LONG && buffer[2] == 0x03) {
             analysisData(buffer);
         }
-        if (size == Constants.SET_RESULT_LINGTH){
+        if (size == Constants.SET_RESULT_LINGTH) {
             setResultData(buffer);
         }
+        //6   [42, 6, 35, 0, 15, 35]
+        if (size == 6) {             //返回的版本信息数据
+            int versionInfo = buffer[3];
+            switch (versionInfo) {
+                case 0:                 //修理厂的版本
+                    mVersionState = 0;
+                    break;
+                case 1:                 //4s点的配置
+                    mVersionState = 1;
+                    break;
+            }
+        }
     }
+
     private void setResultData(byte[] buffer) {
         Boolean isSuccess = DataUtil.analysisSetResult(buffer);
         if (mCurrentState == 1) {
@@ -122,29 +138,31 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                 isByReady = true;
             } else {
                 mCurrentState = 1;
-                SendUtil.setReadyState(mEquipmentNumber,1);
+                SendUtil.setReadyState(mEquipmentNumber, 1);
             }
         }
-        if (mCurrentState == 2){
-            if (isSuccess){
+        if (mCurrentState == 2) {
+            if (isSuccess) {
                 mCurrentState = 0;
                 isByReady = false;
                 finish();
-            }else {
+            } else {
                 mCurrentState = 2;
-                SendUtil.setReadyState(mEquipmentNumber,0);
+                SendUtil.setReadyState(mEquipmentNumber, 0);
             }
         }
-        if (mCurrentState == 3){
-            if (isSuccess){
+        if (mCurrentState == 3) {
+            if (isSuccess) {
                 mCurrentState = 0;
                 isByReady = false;
-            }else {
+            } else {
                 mCurrentState = 3;
-                SendUtil.setReadyState(mEquipmentNumber,0);
+                SendUtil.setReadyState(mEquipmentNumber, 0);
             }
         }
+
     }
+
     /**
      * 数据是否发送成功
      *
@@ -163,15 +181,21 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     }
 
     private void analysisData(byte[] buffer) {
+        //查询版本信息
+        if (isQueryVersion) {
+            isQueryVersion = false;
+            mCurrentState = 4;
+            SendUtil.queryVersionInfo();
+        }
         String state = DataUtil.getState(buffer);                           //状态位
         String checkGasState = DataUtil.getCheckGasState(buffer);       //气体检测仪的状态
         String startState = checkGasState.substring(2, 3);              //设备自启动状态
-        if ("1".equals(startState) && isByReady && isStartActivity){
+        if ("1".equals(startState) && isByReady && isStartActivity && mVersionState == 0) {      //mVersionState是修理厂的版本才有自启动状态
             isStartActivity = false;
             Intent brd = new Intent();
             brd.setAction(Constants.ACTIVITY_STATE);
             sendBroadcast(brd);
-            if (mOpenDialog != null && mOpenDialog.isShowing()){
+            if (mOpenDialog != null && mOpenDialog.isShowing()) {
                 mOpenDialog.dismiss();
             }
             SystemClock.sleep(500);
@@ -186,6 +210,8 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
             startActivity(intent);
             finish();
         }
+
+
         int signalStrength = DataUtil.getSignalStrength(buffer);            //获取信号强度
 
         mEquipmentNumber = DataUtil.getEquipmentNumber(buffer);
@@ -245,17 +271,37 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         float y = event.getY();
         if ((x >= 25 && x <= 290) && (y >= 660 && y <= 795)) {                //返回
             mCurrentState = 2;
-            SendUtil.setReadyState(mEquipmentNumber,0);
+            SendUtil.setReadyState(mEquipmentNumber, 0);
         } else if ((x >= 540 && x <= 794) && (y >= 709 && y <= 785)) {         //下一步
             if (!TextUtils.isEmpty(mEquipmentNumber)) {
-                if (!mOpenDialog.isShowing()) {
-                    mOpenDialog.setinit(mEquipmentNumber);
-                    mOpenDialog.show();
-                    //设置设备已经就绪
-                    mCurrentState = 1;
-                    SendUtil.setReadyState(mEquipmentNumber, 1);
+                if (mVersionState == 0) {       //修理厂的版本
+                    if (!mOpenDialog.isShowing()) {
+                        mOpenDialog.setinit(mEquipmentNumber);
+                        mOpenDialog.show();
+                        //设置设备已经就绪
+                        mCurrentState = 1;
+                        SendUtil.setReadyState(mEquipmentNumber, 1);
+                    }
+                } else if (mVersionState == 1){                         //4S点的版本
+                    Intent brd = new Intent();
+                    brd.setAction(Constants.ACTIVITY_STATE);
+                    sendBroadcast(brd);
+                    Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo22.class);
+                    intent.putExtra("isRoutine", mIsRoutine);
+                    intent.putExtra("isStart", false);
+                    intent.putExtra("pk", mPk);
+                    intent.putExtra("shopName", mShopName);
+                    intent.putExtra("BleDeviceMac", mBleDeviceMac);
+                    intent.putExtra("carNumber", mCarNumber);
+                    intent.putExtra("equipmentID", mEquipmentID);
+                    startActivity(intent);
+                    finish();
+                }else {         //-1说明没有读取到,在从新读取一次
+                    mCurrentState = 4;
+                    SendUtil.queryVersionInfo();
                 }
             }
+
         }
         return false;
     }
@@ -278,7 +324,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
             intent.putExtra("equipmentID", mEquipmentID);
             startActivity(intent);
             finish();
-        }else {
+        } else {
             SystemClock.sleep(500);
             Intent brd = new Intent();
             brd.setAction(Constants.ACTIVITY_STATE);
@@ -300,7 +346,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     @Override
     public void errorMsg(final String msg) {          //校验失败
         mCurrentState = 3;
-        SendUtil.setReadyState(mEquipmentNumber,0);
+        SendUtil.setReadyState(mEquipmentNumber, 0);
         MyApplication.getmHandler().post(new Runnable() {
             @Override
             public void run() {
@@ -310,17 +356,16 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     }
 
 
-
     @Override
     protected void onDestroy() {
         mCurrentState = 2;
-        SendUtil.setReadyState(mEquipmentNumber,0);
+        SendUtil.setReadyState(mEquipmentNumber, 0);
         super.onDestroy();
     }
 
     @Override
     public void onCancelClick() {
         mCurrentState = 3;
-        SendUtil.setReadyState(mEquipmentNumber,0);
+        SendUtil.setReadyState(mEquipmentNumber, 0);
     }
 }

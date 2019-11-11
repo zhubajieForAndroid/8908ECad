@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -209,25 +210,29 @@ public class TextResultActivity extends BaseActivity implements View.OnClickList
 
         @Override
         public void onResponse(Call call, Response response) throws IOException {
-            String string = response.body().string();
-            String substring = string.substring(8, 9);
-            if ("0".equals(substring)) {
-                Gson gson = new Gson();
-                TextTabBean textTabBean = gson.fromJson(string, TextTabBean.class);
-                mBeans.addAll(textTabBean.getResponse());
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter.notifyDataSetChanged();
+            if (response.isSuccessful()) {
+                String string = response.body().string();
+                if (!TextUtils.isEmpty(string) && string.length() >9) {
+                    String substring = string.substring(8, 9);
+                    if ("0".equals(substring)) {
+                        Gson gson = new Gson();
+                        TextTabBean textTabBean = gson.fromJson(string, TextTabBean.class);
+                        mBeans.addAll(textTabBean.getResponse());
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    } else {
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                ToastUtil.showMessage("没有数据");
+                            }
+                        });
                     }
-                });
-            } else {
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        ToastUtil.showMessage("没有数据");
-                    }
-                });
+                }
             }
 
         }

@@ -166,7 +166,6 @@ public class WifiLinkService extends Service {
         @Override
         public void onResponse(Call call, Response response) throws IOException {
             if (response.isSuccessful()){
-                String string = response.body().string();
             }
         }
     };

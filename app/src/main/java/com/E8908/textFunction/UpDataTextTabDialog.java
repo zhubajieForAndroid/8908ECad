@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -164,16 +165,36 @@ public class UpDataTextTabDialog extends Dialog implements View.OnClickListener 
 
         @Override
         public void onResponse(Call call, Response response) throws IOException {
-            String string = response.body().string();
-            String substring = string.substring(8, 9);
-            if ("0".equals(substring)){
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        dismiss();
-                        ToastUtil.showMessage("保存成功");
+            if (response.isSuccessful()) {
+                String string = response.body().string();
+                if (!TextUtils.isEmpty(string) && string.length() > 9) {
+                    String substring = string.substring(8, 9);
+                    if ("0".equals(substring)) {
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                dismiss();
+                                ToastUtil.showMessage("保存成功");
+                            }
+                        });
+                    } else {
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                dismiss();
+                                ToastUtil.showMessage("保存失败");
+                            }
+                        });
                     }
-                });
+                }else {
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dismiss();
+                            ToastUtil.showMessage("保存失败");
+                        }
+                    });
+                }
             }else {
                 mHandler.post(new Runnable() {
                     @Override

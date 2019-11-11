@@ -19,22 +19,13 @@ public class RunTaskManage {
     private boolean isStart;
     private int mCheckCount;
     private float  mCurrentA;
-    private RunTaskManage(Handler handler) {
+    public RunTaskManage(Handler handler) {
         mHandler = handler;
     }
 
-    private static RunTaskManage manage;
 
-    public static RunTaskManage getManage(Handler handler) {
-        if (manage == null) {
-            synchronized (RunTaskManage.class) {
-                if (manage == null) {
-                    manage = new RunTaskManage(handler);
-                }
-            }
-        }
-        return manage;
-    }
+
+
     //TODO----------------------------------雾化,净化,杀菌 start---------------------------------//
 
     /**

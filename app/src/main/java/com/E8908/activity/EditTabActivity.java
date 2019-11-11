@@ -1098,113 +1098,123 @@ public class EditTabActivity extends BaseToolBarActivity implements ViewPager.On
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                String string = response.body().string();
-                try {
-                    JSONObject jsonObject = new JSONObject(string);
-                    int errno = jsonObject.getInt("errno");
-                    if (errno == 0) {
-                        String data = jsonObject.getString("data");
-                        switch (i) {
-                            case 1:
-                                mBeforeCnwpbfFile = data;
-                                break;
-                            case 2:
-                                mAfterCnwpbfFile = data;
-                                break;
-                            case 3:
-                                mBeforeKtlxFile = data;
-                                break;
-                            case 4:
-                                mAfterKtlxFile = data;
-                                break;
-                            case 5:
-                                mBeforeSwczFile = data;
-                                break;
-                            case 6:
-                                mAfterSwczFile = data;
-                                break;
-                            case 7:
-                                mBeforeNsjjdFile = data;
-                                break;
-                            case 8:
-                                mAfterNsjjdFile = data;
-                                break;
-                            case 9:
-                                mBeforeCnfcFile = data;
-                                break;
-                            case 10:
-                                mAfterCnfcFile = data;
-                                break;
-                            case 11:
-                                mBeforeSjxdFile = data;
-                                break;
-                            case 12:
-                                mAfterSjxdFile = data;
-                                break;
-                            case 13:
-                                mBeforeKqjhFile = data;
-                                break;
-                            case 14:
-                                mAfterKqjhFile = data;
-                                break;
-                            case 15:
-                                mBeforeCnqxFile = data;
-                                break;
-                            case 16:
-                                mAfterCnqxFile = data;
-                                break;
-                            case 17:
-                                mBeforeKtlxbmwgFile = data;
-                                break;
-                            case 18:
-                                mAfterKtlxbmwgFile = data;
-                                break;
-                            case 19:
-                                mBeforeZfxFile = data;
-                                break;
-                            case 20:
-                                mAfterZfxFile = data;
-                                break;
-                            case 21:
-                                mBeforeGfjFile = data;
-                                break;
-                            case 22:
-                                mAfterGfjFile = data;
-                                break;
-                            case 23:
-                                mBeforeTfgdFile = data;
-                                break;
-                            case 24:
-                                mAfterTfgdFile = data;
-                                break;
-                            case 25:
-                                mBeforeLnqFile = data;
-                                break;
-                            case 26:
-                                mAfterLnqFile = data;
-                                break;
-                            case 27:
-                                mBeforeKtzlFile = data;
-                                break;
-                            case 28:
-                                mAfterKtzlFile = data;
-                                break;
-                            case 29:
-                                mBeforeKtyxFile = data;
-                                break;
-                            case 30:
-                                mAfterKtyxFile = data;
-                                break;
-                        }
-                        stringPames.put(pames, data);
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mProgressBar.setVisibility(View.GONE);
-                                setImage(file, beforeCnwupf);
+                if (response.isSuccessful()) {
+                    String string = response.body().string();
+                    try {
+                        JSONObject jsonObject = new JSONObject(string);
+                        int errno = jsonObject.getInt("errno");
+                        if (errno == 0) {
+                            String data = jsonObject.getString("data");
+                            switch (i) {
+                                case 1:
+                                    mBeforeCnwpbfFile = data;
+                                    break;
+                                case 2:
+                                    mAfterCnwpbfFile = data;
+                                    break;
+                                case 3:
+                                    mBeforeKtlxFile = data;
+                                    break;
+                                case 4:
+                                    mAfterKtlxFile = data;
+                                    break;
+                                case 5:
+                                    mBeforeSwczFile = data;
+                                    break;
+                                case 6:
+                                    mAfterSwczFile = data;
+                                    break;
+                                case 7:
+                                    mBeforeNsjjdFile = data;
+                                    break;
+                                case 8:
+                                    mAfterNsjjdFile = data;
+                                    break;
+                                case 9:
+                                    mBeforeCnfcFile = data;
+                                    break;
+                                case 10:
+                                    mAfterCnfcFile = data;
+                                    break;
+                                case 11:
+                                    mBeforeSjxdFile = data;
+                                    break;
+                                case 12:
+                                    mAfterSjxdFile = data;
+                                    break;
+                                case 13:
+                                    mBeforeKqjhFile = data;
+                                    break;
+                                case 14:
+                                    mAfterKqjhFile = data;
+                                    break;
+                                case 15:
+                                    mBeforeCnqxFile = data;
+                                    break;
+                                case 16:
+                                    mAfterCnqxFile = data;
+                                    break;
+                                case 17:
+                                    mBeforeKtlxbmwgFile = data;
+                                    break;
+                                case 18:
+                                    mAfterKtlxbmwgFile = data;
+                                    break;
+                                case 19:
+                                    mBeforeZfxFile = data;
+                                    break;
+                                case 20:
+                                    mAfterZfxFile = data;
+                                    break;
+                                case 21:
+                                    mBeforeGfjFile = data;
+                                    break;
+                                case 22:
+                                    mAfterGfjFile = data;
+                                    break;
+                                case 23:
+                                    mBeforeTfgdFile = data;
+                                    break;
+                                case 24:
+                                    mAfterTfgdFile = data;
+                                    break;
+                                case 25:
+                                    mBeforeLnqFile = data;
+                                    break;
+                                case 26:
+                                    mAfterLnqFile = data;
+                                    break;
+                                case 27:
+                                    mBeforeKtzlFile = data;
+                                    break;
+                                case 28:
+                                    mAfterKtzlFile = data;
+                                    break;
+                                case 29:
+                                    mBeforeKtyxFile = data;
+                                    break;
+                                case 30:
+                                    mAfterKtyxFile = data;
+                                    break;
                             }
-                        });
-                    } else {
+                            stringPames.put(pames, data);
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mProgressBar.setVisibility(View.GONE);
+                                    setImage(file, beforeCnwupf);
+                                }
+                            });
+                        } else {
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -1212,14 +1222,6 @@ public class EditTabActivity extends BaseToolBarActivity implements ViewPager.On
                             }
                         });
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mProgressBar.setVisibility(View.GONE);
-                        }
-                    });
                 }
             }
         });

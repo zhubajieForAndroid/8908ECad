@@ -110,6 +110,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
     private boolean isDTUFail = false;              //DTU通讯是否正常
     private UpDataTextTabDialog mUpDataTextTabDialog;
     private String mEquipmentNumber;
+    private RunTaskManage mManage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +129,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
         mDialog.setOnPauseBtnListener(this);
         mRecordAd = getSharedPreferences("adCound", 0);
 
-
+        mManage = new RunTaskManage(mHandler);
         initData();
         initListener();
     }
@@ -191,7 +192,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
         //交流电流
         mCommunionFlow = DataUtil.directCommunionFlow(buffer);
         mCommunionFlow = mCommunionFlow / 10;
-        RunTaskManage.getManage(mHandler).setCurrentA(mCommunionFlow);
+        mManage.setCurrentA(mCommunionFlow);
         if (mDialog.isShowing())
             mDialog.setNumber(mAdNumbwe);
 
@@ -296,11 +297,8 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 if (isSuccess) {
                     mSendState = 0;
                     mDialog.setCurrentRuningState(2);
-                    if (!mDialog.isShowing()) {
-                        mDialog.show();
-                    }
                     mDialog.setPauseClickable(true);
-                    RunTaskManage.getManage(mHandler).startAddTask(mWuhuaTime, "雾化", mWuhuaA);
+                    mManage.startAddTask(mWuhuaTime, "雾化", mWuhuaA);
                 } else {
                     SendUtil.open8();
                 }
@@ -313,7 +311,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                         mDialog.show();
                     }
                     mDialog.setPauseClickable(true);
-                    RunTaskManage.getManage(mHandler).startAddTask(mShaJun, "杀菌", mShajunA);
+                    mManage.startAddTask(mShaJun, "杀菌", mShajunA);
                 } else {
                     SendUtil.open7();
                 }
@@ -326,7 +324,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                         mDialog.show();
                     }
                     mDialog.setPauseClickable(true);
-                    RunTaskManage.getManage(mHandler).startAddTask(mJIngHua, "净化", mJinghuaA);
+                    mManage.startAddTask(mJIngHua, "净化", mJinghuaA);
                 } else {
                     SendUtil.open6();
                 }
@@ -352,7 +350,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
             case 6:                                     //重启杀菌
                 if (isSuccess) {
                     mSendState = 0;
-                    RunTaskManage.getManage(mHandler).reStart();
+                    mManage.reStart();
                 } else {
                     startShajun(6);
                 }
@@ -360,7 +358,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
             case 7:                                     //重启净化
                 if (isSuccess) {
                     mSendState = 0;
-                    RunTaskManage.getManage(mHandler).reStart();
+                    mManage.reStart();
                 } else {
                     startJinghua(7);
                 }
@@ -368,7 +366,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
             case 8:                                        //重启雾化
                 if (isSuccess) {
                     mSendState = 0;
-                    RunTaskManage.getManage(mHandler).reStart();
+                    mManage.reStart();
                 } else {
                     startWuhua(8);
                 }
@@ -504,8 +502,6 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 1:                     //雾化进行中
                     int arg1 = msg.arg1;
-                    if (!mDialog.isShowing())
-                        mDialog.show();
                     mDialog.setRunText("正在进行雾化" + arg1 + "秒");
                     mDialog.setRunData("电流 :" + mCommunionFlow);
                     break;
@@ -766,7 +762,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
         SendUtil.closeAll();
         stopCheckAd();
         stopBack();
-        RunTaskManage.getManage(mHandler).pauseTask();
+        mManage.pauseTask();
     }
 
     @Override
@@ -798,7 +794,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
         SendUtil.closeAll();
         stopCheckAd();
         stopBack();
-        RunTaskManage.getManage(mHandler).stopAddTask();
+        mManage.stopAddTask();
     }
 
     /**
@@ -880,5 +876,6 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
     protected void onDestroy() {
         super.onDestroy();
         SendUtil.closeAll();
+        mHandler.removeCallbacksAndMessages(null);
     }
 }

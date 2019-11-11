@@ -39,12 +39,5 @@ public class IsLockDialog extends Dialog {
         mWindow.setAttributes(attributes);
         setCanceledOnTouchOutside(false);
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
 
 }

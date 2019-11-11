@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import com.E8908.R;
+import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.SendUtil;
 
 /**
@@ -26,6 +27,8 @@ public class SetDateDialog extends Dialog implements View.OnTouchListener {
 
 
     private DateResultListener mDateResultListener;
+    private Window mWindow;
+
     public SetDateDialog(Context context, int themeResId) {
         super(context, themeResId);
         mContent = context;
@@ -37,12 +40,12 @@ public class SetDateDialog extends Dialog implements View.OnTouchListener {
         iv.setImageResource(imageRes);
         iv.setOnTouchListener(this);
         mSquareEditextTwoContainer = (SquareEditextThreeContainer) findViewById(R.id.load_result_number);
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams wlp = window.getAttributes();
+        mWindow = getWindow();
+        if (mWindow != null) {
+            WindowManager.LayoutParams wlp = mWindow.getAttributes();
             wlp.gravity = Gravity.CENTER;
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            window.setAttributes(wlp);
+            mWindow.setAttributes(wlp);
         }
     }
 

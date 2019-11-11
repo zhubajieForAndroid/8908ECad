@@ -1,7 +1,6 @@
 package com.E8908.activity;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.widget.TextView;
 import com.E8908.R;
 import com.E8908.widget.ToastUtil;
 import com.tencent.bugly.beta.Beta;
-import com.tencent.bugly.beta.UpgradeInfo;
 import com.tencent.bugly.beta.download.DownloadTask;
 
 import butterknife.Bind;
@@ -25,6 +23,8 @@ public class UpgradeActivity extends Activity implements View.OnClickListener {
     TextView mTvUpgradeCancel;                  //取消更新
     @Bind(R.id.tv_upgrade_confirm)
     TextView mTvUpgradeConfirm;                 //立即更新
+    @Bind(R.id.center_line)
+    View mCenterLine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +39,16 @@ public class UpgradeActivity extends Activity implements View.OnClickListener {
 
     private void initData() {
         String info = getIntent().getStringExtra("info");
+        int upType = getIntent().getIntExtra("upType", 1);//升级类型1建议,2强制,3手工
         if (!TextUtils.isEmpty(info))
             mTvUpgradeFeature.setText(info);
+        if (upType == 1) {       //建议升级
+            mTvUpgradeCancel.setVisibility(View.VISIBLE);
+            mCenterLine.setVisibility(View.VISIBLE);
+        } else if (upType == 2) {//强制升级
+            mTvUpgradeCancel.setVisibility(View.GONE);
+            mCenterLine.setVisibility(View.GONE);
+        }
     }
 
     private void initListener() {

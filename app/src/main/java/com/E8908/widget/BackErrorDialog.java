@@ -23,6 +23,7 @@ public class BackErrorDialog extends Dialog implements View.OnTouchListener {
 
     private Context mContext;
     private Window mWindow;
+    private OnBackClickListener mOnBackClickListener;
 
     public BackErrorDialog(Context context, int themeResId) {
         super(context, themeResId);
@@ -32,6 +33,7 @@ public class BackErrorDialog extends Dialog implements View.OnTouchListener {
     public void setID(int resid){
         setContentView(R.layout.back_error);
         mWindow = getWindow();
+        setCanceledOnTouchOutside(false);
         WindowManager.LayoutParams lp = mWindow.getAttributes();
         lp.gravity = Gravity.CENTER;
         lp.width = 556;
@@ -41,21 +43,24 @@ public class BackErrorDialog extends Dialog implements View.OnTouchListener {
         tv.setImageResource(resid);
         tv.setOnTouchListener(this);
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
         if ((x >= 133 && x <= 420) && (y >= 222 && y <= 280)) {
-            dismiss();
+            mOnBackClickListener.backListener();
         }
         return false;
     }
+    public interface OnBackClickListener{
+        void backListener();
+    }
+
+    public void setOnBackClickListener(OnBackClickListener onBackClickListener) {
+        mOnBackClickListener = onBackClickListener;
+    }
+
+
 }

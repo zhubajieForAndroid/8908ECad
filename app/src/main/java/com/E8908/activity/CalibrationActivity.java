@@ -1,14 +1,16 @@
 package com.E8908.activity;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -20,6 +22,8 @@ import com.E8908.base.MyApplication;
 import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
+import com.E8908.util.SharedPreferencesUtils;
+import com.E8908.widget.LongTouchBtn;
 import com.E8908.widget.SetXishuDialog;
 import com.E8908.widget.ToastUtil;
 
@@ -28,7 +32,7 @@ import java.text.DecimalFormat;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class CalibrationActivity extends BaseActivity implements View.OnClickListener, SetXishuDialog.OnSendOpenListener, View.OnTouchListener {
+public class CalibrationActivity extends BaseActivity implements View.OnClickListener, SetXishuDialog.OnSendOpenListener{
 
     private static final String TAG = "CalibrationActivity";
     @Bind(R.id.toobar_bg_image)
@@ -66,7 +70,7 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
     @Bind(R.id.set_btn)
     Button mSetBtn;
     @Bind(R.id.oil_number)
-    TextView mOilNumber;
+    EditText mOilNumber;
     private float mInitNumber = 1000;         //默认标定油量
     private boolean mIsYesData = false;
     private int mParseInt;      //电子秤AD值
@@ -77,6 +81,7 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
     private float mAdInt;
     private boolean isComplete = false; //是否完成标定
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,9 +91,32 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
         mStepThreeBtnResult.setClickable(false);
         mStepTwoBtn.setClickable(false);
 
+        LongTouchBtn minusBtn = findViewById(R.id.minus);
+        LongTouchBtn plusBtn = findViewById(R.id.plus);
+        minusBtn.setOnClickListener(this);
+        plusBtn.setOnClickListener(this);
+        plusBtn.setOnLongTouchListener(new LongTouchBtn.LongTouchListener() {
+            @Override
+            public void onLongTouch() {
+                if (mInitNumber < 2000){
+                    mInitNumber ++;
+                    setNumberStr();
+                }
+            }
+        },100);
+        minusBtn.setOnLongTouchListener(new LongTouchBtn.LongTouchListener() {
+            @Override
+            public void onLongTouch() {
+                if (mInitNumber > 100){
+                    mInitNumber --;
+                    setNumberStr();
+                }
+            }
+        },100);
+
         SendUtil.setWorkState(4);
         setNumberStr();
-        initData();
+
     }
 
     private void setNumberStr() {
@@ -233,10 +261,15 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata,boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging){
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            }else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -251,11 +284,6 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
         mStepTwoBtn.setOnClickListener(this);
         mStepThreeBtnResult.setOnClickListener(this);
         mSetBtn.setOnClickListener(this);
-        mContainer.setOnTouchListener(this);
-    }
-
-    private void initData() {
-
     }
 
     @Override
@@ -281,6 +309,9 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
             case R.id.step_two_btn:             //保存加入10升的Ad值
                 SharedPreferences spadd = getSharedPreferences("ad", 0);
                 int adInt = spadd.getInt("adInt", 0);
+                String trim = mOilNumber.getText().toString().trim();
+                mInitNumber = (int) (Float.parseFloat(trim) * 100);
+                Log.d(TAG, "onClick: "+mInitNumber);
                 if (mParseInt <= adInt) {
                     ToastUtil.showMessage("保存数值不正确");
                 } else {
@@ -311,12 +342,17 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
                 int xorResult = 0x2a ^ 0x09 ^ 0x05 ^ xishuGao ^ xishuDi ^ kongGao ^ kongDi;
                 int[] three = {0x2a, 0x09, 0x05, xishuGao, xishuDi, kongGao, kongDi, xorResult, 0x23};
                 SendUtil.sendMessage(three, MyApplication.getOutputStream());
+                SharedPreferences coefficientPortState = SharedPreferencesUtils.getCoefficientPortState();
+                SharedPreferences.Editor edit1 = coefficientPortState.edit();
+                edit1.putBoolean("coefficientState",true);
+                edit1.apply();
                 break;
             case R.id.set_btn:                          //设置系数
                 SetXishuDialog dialog = new SetXishuDialog(this, R.style.dialog);
                 dialog.setOnSendOpenListener(this);
                 dialog.show();
                 break;
+
         }
     }
 
@@ -331,6 +367,11 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
         int xorResult = 0x2a ^ 0x09 ^ 0x05 ^ xishuGao ^ xishuDi ^ kongGao ^ kongDi;
         int[] three = {0x2a, 0x09, 0x05, xishuGao, xishuDi, kongGao, kongDi, xorResult, 0x23};
         SendUtil.sendMessage(three, MyApplication.getOutputStream());
+
+        SharedPreferences coefficientPortState = SharedPreferencesUtils.getCoefficientPortState();
+        SharedPreferences.Editor edit1 = coefficientPortState.edit();
+        edit1.putBoolean("coefficientState",true);
+        edit1.apply();
     }
 
     @Override
@@ -339,26 +380,4 @@ public class CalibrationActivity extends BaseActivity implements View.OnClickLis
         SendUtil.setWorkState(0);
     }
 
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-        if ((x >= 130 && x <= 186) && (y >= 455 && y <= 500)) {              //减
-            SendUtil.controlVoice();
-            if (mInitNumber < 2000){
-                mInitNumber ++;
-                setNumberStr();
-            }
-        } else if ((x >= 305 && x <= 355) && (y >= 458 && y <= 500)) {              //加
-            SendUtil.controlVoice();
-            if (mInitNumber > 100){
-                mInitNumber --;
-                setNumberStr();
-            }
-        } else {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        }
-        return false;
-    }
 }

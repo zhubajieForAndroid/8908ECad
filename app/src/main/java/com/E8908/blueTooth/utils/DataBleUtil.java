@@ -1,6 +1,11 @@
 package com.E8908.blueTooth.utils;
 
 import android.text.TextUtils;
+import android.util.Log;
+
+import java.util.Arrays;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class DataBleUtil {
     /**
@@ -45,6 +50,10 @@ public class DataBleUtil {
      * @return
      */
     public static String getTVOC(byte[] array){
+        //24  [42, 24, 0, 1, 0, 1, 0, 0, 0, 3, -86, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -102, 35]
+        //34  [42, 34, 0, 0, 0, 0, 0, 0, 0, 0, -86, 1, 0, 1, 15, 3, 4, 0, 26, 0, 33, 0, 37, 0, 33, 0, 5, 0, 0, 0, 0, 0, -112, 35]
+        if (array.length < 34)
+            return "0";
         //[42, 34, 0, 0, 0, 0, 0, 0, 0, 0, -86, 1,&& 0, 0, -14, 2, -87, 0, 57, 0, 70, 0, 79, 0, 35, 0, 85, 0, 0, 0, 0, 0, -68, 35]
         //2A 22 00 00 00 00 00 00 00 00 AA 01 00 00 F2 02 A9 00 39    00 46    00 4F    00 23   00 55   00 00 00 00 00 BC 23
         String hexString = castBytesToHexString(array);
@@ -56,6 +65,8 @@ public class DataBleUtil {
      * @return
      */
     public static String getFormaldehyde(byte[] array){
+        if (array.length < 34)
+            return "0";
         String hexString = castBytesToHexString(array);
         return hexString.substring(46,50);//10  42 46
     }
@@ -66,6 +77,8 @@ public class DataBleUtil {
      * @return
      */
     public static String getPM(byte[] array){
+        if (array.length < 34)
+            return "0";
         String hexString = castBytesToHexString(array);
         return hexString.substring(38, 42);//1.0  34 38
     }
@@ -76,6 +89,8 @@ public class DataBleUtil {
      * @return
      */
     public static String getHumidity(byte[] array){
+        if (array.length < 34)
+            return "0";
         String hexString = castBytesToHexString(array);
         return hexString.substring(30, 34);
     }
@@ -85,6 +100,8 @@ public class DataBleUtil {
      * @return
      */
     public static String getTemperatureByCheck(byte[] array){
+        if (array.length < 34)
+            return "0";
         String hexString = castBytesToHexString(array);
         return hexString.substring(26, 30);
     }

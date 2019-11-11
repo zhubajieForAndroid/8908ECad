@@ -3,6 +3,8 @@ package com.E8908.util;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -17,7 +19,9 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.squareup.picasso.Picasso;
 
 import java.io.InputStream;
+import java.security.MessageDigest;
 import java.util.Hashtable;
+
 
 
 /**

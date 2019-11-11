@@ -142,10 +142,15 @@ public class CheckGasActivity extends BaseActivity implements View.OnClickListen
     }
 
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata,boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging){
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            }else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -292,7 +297,7 @@ public class CheckGasActivity extends BaseActivity implements View.OnClickListen
     }
 
     private void gasData(byte[] buffer) {
-        if (buffer == null)
+        if (buffer == null || buffer.length <= 0)
             return;
         String checkGasState = DataBleUtil.getBleCheckGasState(buffer);       //气体检测仪的状态
         String preheatState = checkGasState.substring(0,1);  //预热状态

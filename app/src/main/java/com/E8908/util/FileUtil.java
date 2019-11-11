@@ -64,7 +64,7 @@ public class FileUtil {
         SharedPreferences sp = MyApplication.getContext().getSharedPreferences("send", 0);
         SharedPreferences.Editor edit = sp.edit();
         edit.putBoolean("sendState",state);
-        edit.commit();
+        edit.apply();
     }
 
     /**
@@ -160,5 +160,20 @@ public class FileUtil {
             intent.setDataAndType(Uri.fromFile(loadFile), "application/vnd.android.package-archive");
             context.startActivity(intent);
         }
+    }
+
+    /**
+     * 获取视频1本地地址
+     * @return
+     */
+    public static String getVideoOnePath(){
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera/info_one.mp4";
+    }
+    /**
+     * 获取视频2本地地址
+     * @return
+     */
+    public static String getVideoTwoPath(){
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera/info_two.mp4";
     }
 }

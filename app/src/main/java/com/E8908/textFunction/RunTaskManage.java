@@ -5,6 +5,8 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.E8908.widget.ToastUtil;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -93,7 +95,6 @@ public class RunTaskManage {
                     Message message = new Message();
                     switch (mState) {
                         case "雾化":
-                            Log.d(TAG, "run: "+mCheckCount+"   "+(mCurrentA < mRunA));
                             if (mCheckCount >= 5) {
                                 if (mCurrentA < mRunA){     //雾化失败
                                     pauseTask();
@@ -105,6 +106,7 @@ public class RunTaskManage {
                             } else {
                                 message.what = 1;
                                 message.arg1 = mWuhuaTime;
+
                             }
                             break;
                         case "杀菌":

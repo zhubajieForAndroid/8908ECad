@@ -4,10 +4,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.E8908.R;
+import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -20,6 +22,7 @@ public class JurisdictionDialog extends Dialog implements View.OnClickListener {
     private String mEquipmentID;
     private OnCheckJListener mOnCheckJListener;
     private int  mState;
+    private Window mWindow;
 
     public JurisdictionDialog(Context context, int themeResId) {
         super(context, themeResId);
@@ -31,7 +34,7 @@ public class JurisdictionDialog extends Dialog implements View.OnClickListener {
         mState = state;
         EditText hintStr = findViewById(R.id.qeuipment_hint_id);
         hintStr.setText(equipmentNumber);
-
+        mWindow = getWindow();
         mNumber = findViewById(R.id.number);
         Button cancle = findViewById(R.id.cancle);
         Button check = findViewById(R.id.ckeck);
@@ -40,6 +43,8 @@ public class JurisdictionDialog extends Dialog implements View.OnClickListener {
 
 
     }
+
+
 
     @Override
     public void onClick(View v) {

@@ -21,8 +21,6 @@ import android.widget.VideoView;
 import com.E8908.R;
 import com.E8908.widget.VideoDialog;
 
-import static android.provider.MediaStore.Video.Thumbnails.MINI_KIND;
-import static android.support.constraint.Constraints.TAG;
 
 public class VideoFragmentTwo extends Fragment implements View.OnClickListener, View.OnTouchListener, VideoDialog.OnCurrentPosition {
 

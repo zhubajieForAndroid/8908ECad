@@ -47,9 +47,6 @@ public class ActivationDialog extends Dialog {
     }
     @Override
     public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
         super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
     }
 }

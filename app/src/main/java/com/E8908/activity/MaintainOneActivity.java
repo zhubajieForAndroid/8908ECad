@@ -13,9 +13,11 @@ import android.widget.TextView;
 
 import com.E8908.R;
 import com.E8908.base.BaseActivity;
+import com.E8908.blueTooth.SendBleDataService;
 import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
+import com.clj.fastble.BleManager;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -48,6 +50,7 @@ public class MaintainOneActivity extends BaseActivity implements View.OnTouchLis
         setContentView(R.layout.activity_maintain_one);
         ButterKnife.bind(this);
         mIsRoutine = getIntent().getBooleanExtra("isRoutine", false);
+
         initData();
     }
 
@@ -100,10 +103,15 @@ public class MaintainOneActivity extends BaseActivity implements View.OnTouchLis
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata,boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging){
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            }else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));

@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import com.E8908.R;
 import com.E8908.util.BItmapUtil;
 import com.E8908.util.KeyboardUtil;
+import com.E8908.util.NavigationBarUtil;
 
 
 /**
@@ -30,6 +31,7 @@ public class LoginDialog extends Dialog implements View.OnTouchListener {
     private OnLonInListener mOnLonInListener;
     private String mPassworld;
     private KeyboardUtil mKeyboardUtil;
+    private Window mWindow;
 
     public LoginDialog(Context context, int themeResId, String passworld) {
         super(context, themeResId);
@@ -47,12 +49,12 @@ public class LoginDialog extends Dialog implements View.OnTouchListener {
         mEt = findViewById(R.id.et);
         KeyboardView keyboardView = findViewById(R.id.keyboard_view);
         mKeyboardUtil = new KeyboardUtil(keyboardView, mContext, mEt);
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams wlp = window.getAttributes();
+        mWindow = getWindow();
+        if (mWindow != null) {
+            WindowManager.LayoutParams wlp = mWindow.getAttributes();
             wlp.gravity = Gravity.CENTER;
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            window.setAttributes(wlp);
+            mWindow.setAttributes(wlp);
         }
         Bitmap bitmap = BItmapUtil.compressBItmap(mContext, R.mipmap.reset);
         mIv.setImageBitmap(bitmap);

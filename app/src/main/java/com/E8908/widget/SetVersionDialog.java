@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.E8908.R;
+import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.SendUtil;
 
 /**
@@ -23,6 +24,7 @@ public class SetVersionDialog extends Dialog implements View.OnTouchListener {
     private SquareEditextContainer mSquareEditextTwoContainer;
     private DataResultListener mDataResultListener;
     private boolean mIsHardwareVersion;         //区分硬件版本和主控版本
+    private Window mWindow;
 
     public SetVersionDialog(Context context, int themeResId) {
         super(context, themeResId);
@@ -35,12 +37,12 @@ public class SetVersionDialog extends Dialog implements View.OnTouchListener {
         iv.setImageResource(imageRes);
         iv.setOnTouchListener(this);
         mSquareEditextTwoContainer = (SquareEditextContainer) findViewById(R.id.load_result_number);
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams wlp = window.getAttributes();
+        mWindow = getWindow();
+        if (mWindow != null) {
+            WindowManager.LayoutParams wlp = mWindow.getAttributes();
             wlp.gravity = Gravity.CENTER;
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            window.setAttributes(wlp);
+            mWindow.setAttributes(wlp);
         }
     }
 

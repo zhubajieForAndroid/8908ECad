@@ -73,7 +73,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
     @Bind(R.id.dtu)
     LinearLayout mDtu;
     private int mSendState;
-    private int mJiazhuTime = 30;         //加注800ML30秒内完成
+    private int mJiazhuTime = 40;         //加注800ML30秒内完成
     private int mAddCount = 800;          //800ML
     private int mAddTimeTimp = mJiazhuTime;              //临时记录的加注时间,用于在每次点击加注时初始化
 
@@ -85,7 +85,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
     private int mShaJun = 10;                   //杀菌时间
     private int mJIngHua = 10;                   //净化时间
     private float mWuhuaA = 2.1f;                //雾化时默认的电流
-    private float mShajunA = 0.8f;                //杀菌时默认的电流
+    private float mShajunA = 0.7f;                //杀菌时默认的电流
     private float mJinghuaA = 0.3f;                //净化时默认的电流
 
     private boolean mIsYesData = false;
@@ -154,10 +154,15 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
     }
 
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata,boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging){
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            }else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -499,6 +504,8 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 1:                     //雾化进行中
                     int arg1 = msg.arg1;
+                    if (!mDialog.isShowing())
+                        mDialog.show();
                     mDialog.setRunText("正在进行雾化" + arg1 + "秒");
                     mDialog.setRunData("电流 :" + mCommunionFlow);
                     break;
@@ -518,7 +525,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 2:                     //雾化完成
                     isWuhuaFail = false;
-                    mFunctionTv.setText("");                //如果出现过异常就清除掉状态,不正常进行不了下一步
+                    mFunctionTv.setText("无");                //如果出现过异常就清除掉状态,不正常进行不了下一步
                     if (isLoopruning) {
                         startShajun(3);
                     } else {
@@ -529,7 +536,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 4:                     //杀菌完成
                     isShajunFail = false;
-                    mFunctionTv.setText("");
+                    mFunctionTv.setText("无");
                     if (isLoopruning) {
                         startJinghua(4);
                     } else {
@@ -540,7 +547,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 6:                     //净化完成
                     isJinghuaFail = false;
-                    mFunctionTv.setText("");
+                    mFunctionTv.setText("无");
                     if (isLoopruning) {
                         mBackSuccessTime = mBackTimeTimp;//初始化回收倒计时时间
                         startHuishou(9);
@@ -552,7 +559,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     break;
                 case 8:                     //加注完成
                     isAddFail = false;
-                    mFunctionTv.setText("");
+                    mFunctionTv.setText("无");
                     if (isLoopruning) {
                         startWuhua(2);
                     } else {
@@ -574,6 +581,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                     mDialog.setRunData("电流 :" + mCommunionFlow);
                     break;
                 case 10:                    //回收完成
+                    isBackFail = false;
                     if (isLoopruning) {
                         mLoopCount++;
                         if (mLoopCount > 5) {
@@ -594,7 +602,8 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 case 16:                                //回收失败
                     mFunctionTv.setText("回收");
                     isBackFail = true;
-                    ToastUtil.showMessage("20秒未回收300ML");
+                    mDialog.setRunText("回收失败");
+                    SendUtil.closeAll();
                     break;
                 case 7:                                 //加注失败
                     mFunctionTv.setText("加注");
@@ -678,7 +687,6 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                 }
                 int initAdInt = Integer.parseInt(initAd, 16);
                 int currentAdInt = Integer.parseInt(mAdNumbwe, 16);
-                Log.d(TAG, "run: " + mJiazhuTime + "  加注量=" + Math.abs(initAdInt - currentAdInt));
                 if (Math.abs(initAdInt - currentAdInt) >= mAddCount) {         //加注了800ML
                     stopCheckAd();
                     if (mIsAfterAdd) {
@@ -726,15 +734,15 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
             int currentAdInt = Integer.parseInt(mAdNumbwe, 16);
             if (mBackSuccessTime > 0) {
                 mBackSuccessTime--;
+                Message message = new Message();
+                message.what = 12;
+                mHandler.sendMessage(message);
             } else {             //20秒已到
                 if (currentAdInt - initAdInt < 10) {
                     stopBack();
-                    Message msg = new Message();
-                    msg.what = 10;
-                    mHandler.sendMessage(msg);
                     if (Math.abs(currentAdInt - checkAdInt) >= mBackCount) {     //回收目标完成
                         Message message = new Message();
-                        message.what = 11;
+                        message.what = 10;
                         mHandler.sendMessage(message);
                     } else {                     //回收失败
                         Message message = new Message();
@@ -742,11 +750,7 @@ public class TextFunctionActivity extends BaseActivity implements View.OnClickLi
                         mHandler.sendMessage(message);
                     }
                 }
-
             }
-            Message message = new Message();
-            message.what = 12;
-            mHandler.sendMessage(message);
             //初始化一次电子秤的保存的数值
             SharedPreferences.Editor edit = mRecordAd.edit();
             edit.putString("initAd", mAdNumbwe);

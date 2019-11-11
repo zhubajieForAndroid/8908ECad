@@ -1,5 +1,6 @@
 package com.E8908.util;
 
+import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,7 +10,6 @@ import com.E8908.base.MyApplication;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -100,6 +100,7 @@ public class SendUtil {
         int[] start = {0x2a, 0x06, 0x01, 0x20, 0x0d, 0x23};
         SendUtil.sendMessage(start, MyApplication.getOutputStream());
     }
+
     /**
      * 关闭其他所有的触点打开6#触点
      */
@@ -159,6 +160,10 @@ public class SendUtil {
         int result = 0x2a ^ 0x06 ^ 0x08 ^ state;
         int[] start = {0x2a, 0x06, 0x08, state, result, 0x23};
         SendUtil.sendMessage(start, MyApplication.getOutputStream());
+        SharedPreferences workValueSp = SharedPreferencesUtils.getWorkValueSp();
+        SharedPreferences.Editor edit = workValueSp.edit();
+        edit.putInt("workStateValue", state);
+        edit.apply();
     }
 
 
@@ -213,6 +218,11 @@ public class SendUtil {
         //调用接口设置设备是否就绪
         if (!TextUtils.isEmpty(equipment))
             SetReadStateUtil.setRead(equipment, "" + state);
+        //保存设置的状态
+        SharedPreferences readyStateValueSp = SharedPreferencesUtils.getReadyStateValueSp();
+        SharedPreferences.Editor edit = readyStateValueSp.edit();
+        edit.putInt("readyAndUnReadyState", state);
+        edit.apply();
     }
 
     /**
@@ -369,15 +379,175 @@ public class SendUtil {
         //固定后2位
         start[23] = xor;
         start[24] = 0x23;
-        Log.d(TAG, "setDtuIp: "+Arrays.toString(start));
+        Log.d(TAG, "setDtuIp: " + Arrays.toString(start));
         SendUtil.sendMessage(start, MyApplication.getOutputStream());
     }
 
     /**
      * 查询版本信息
      */
-    public static void queryVersionInfo(){
+    public static void queryVersionInfo() {
         int[] start = {0x2a, 0x05, 0x23, 0x0c, 0x23};
         SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 控制声音长一声
+     */
+    public static void controlVoiceLong() {
+        int[] arr = {0x2a, 0x07, 0x04, 0x01, 0x50, 0x78, 0x23};
+        SendUtil.sendMessage(arr, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 控制声音长2声
+     */
+    public static void controlVoiceLongTwo() {
+        int[] arr = {0x2a, 0x07, 0x04, 0x02, 0x50, 0x7b, 0x23};
+        SendUtil.sendMessage(arr, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 设置下位机是否连接服务器
+     *
+     * @param isLinkService true 可以连接
+     */
+    public static void setLinkServiceState(boolean isLinkService) {
+        int[] start;
+        if (isLinkService) {
+            start = new int[]{0x2a, 0x06, 0x16, 0x00, 0x3A, 0x23};
+        } else {
+            start = new int[]{0x2a, 0x06, 0x16, 0x01, 0x3B, 0x23};
+        }
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 设置加锁解锁状态
+     */
+    public static void setLock(boolean isLock) {
+        int[] start;
+        if (isLock) {            //加锁
+            start = new int[]{0x2a, 0x06, 0x15, 0x01, 0x38, 0x23};
+        } else {
+            start = new int[]{0x2a, 0x06, 0x15, 0x00, 0x39, 0x23};
+        }
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 设置激活状态
+     */
+    public static void setActionState(boolean isAction) {
+        int[] start;
+        if (isAction) {            //设置激活
+            start = new int[]{0x2a, 0x06, 0x14, 0x01, 0x39, 0x23};
+        } else {                   //设置未激活
+            start = new int[]{0x2a, 0x06, 0x14, 0x00, 0x38, 0x23};
+        }
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 设置4S/修理厂
+     */
+    public static void setVersionState(boolean isVersion) {
+        int[] start;
+        if (isVersion) {            //4S
+            start = new int[]{0x2a, 0x06, 0x17, 0x01, 0x3A, 0x23};
+        } else {                   //修理厂
+            start = new int[]{0x2a, 0x06, 0x17, 0x00, 0x3B, 0x23};
+        }
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 自定义常规模式
+     */
+    public static void setChengguiState(boolean isVersion) {
+        int[] start;
+        if (isVersion) {            //禁止
+            start = new int[]{0x2a, 0x06, 0x30, 0x01, 0x1D, 0x23};
+        } else {                   //允许
+            start = new int[]{0x2a, 0x06, 0x30, 0x00, 0x1C, 0x23};
+        }
+        SendUtil.sendMessage(start, MyApplication.getOutputStream());
+    }
+
+    /**
+     * 获取服务器设置的运行时间,设置大主板上的数组
+     *
+     * @return
+     */
+    public static void setRuningTimeData(int zOne, int zTwo, int zThree, int cOne, int cTwo, int cThree) {
+        int zOneR = checkData(zOne);
+        int zTwoR = checkData(zTwo);
+        int zThreeR = checkData(zThree);
+        int cOneR = checkData(cOne);
+        int cTwoR = checkData(cTwo);
+        int cThreeR = checkData(cThree);
+        int xor = 0x2a ^ 0x0B ^ 0x19 ^ zOneR ^ zTwoR ^ zThreeR ^ cOneR ^ cTwoR ^ cThreeR;
+        int[] arr = {0x2a, 0x0B, 0x19, zOneR, zTwoR, zThreeR, cOneR, cTwoR, cThreeR, xor, 0x23};
+        Log.d(TAG, "socketReadResponse: -------"+cOne+"  "+Arrays.toString(arr));
+        SendUtil.sendMessage(arr, MyApplication.getOutputStream());
+    }
+
+    private static int checkData(int data) {
+        int result;
+        switch (data) {
+            case 48:
+                result = 0;
+                break;
+            case 49:
+                result = 1;
+                break;
+            case 50:
+                result = 2;
+                break;
+            case 51:
+                result = 3;
+                break;
+            case 52:
+                result = 4;
+                break;
+            case 53:
+                result = 5;
+                break;
+            case 54:
+                result = 6;
+                break;
+            case 55:
+                result = 7;
+                break;
+            case 56:
+                result = 8;
+                break;
+            case 57:
+                result = 9;
+                break;
+            case 65:
+                result = 11;
+                break;
+            case 66:
+                result = 12;
+                break;
+            case 67:
+                result = 13;
+                break;
+            case 68:
+                result = 14;
+                break;
+            case 69:
+                result = 15;
+                break;
+            case 70:
+                result = 0;
+                break;
+            default:
+                result = 0;
+                break;
+
+        }
+        return result;
     }
 }

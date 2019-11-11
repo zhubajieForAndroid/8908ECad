@@ -1,20 +1,19 @@
 package com.E8908.activity;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
 import com.E8908.R;
+import com.E8908.base.BaseActivity;
 import com.E8908.base.MyApplication;
+import com.E8908.manage.SocketManage;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class StartAppActivity extends Activity {
+public class StartAppActivity extends BaseActivity {
 
     private Timer mTimer;
 
@@ -25,9 +24,28 @@ public class StartAppActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);// 设置全屏
         setContentView(R.layout.activity_start_page);
 
+        Intent intent = new Intent("tyzc.SHOW");
+        intent.putExtra("mode", false);
+        sendBroadcast(intent);
+
         mTimer = new Timer();
         mTimer.schedule(startTask, 500);
         MyApplication.initSerialPort();
+    }
+
+    @Override
+    protected void isWifiConnected(boolean b, int level) {
+
+    }
+
+    @Override
+    protected void isYesData(boolean isdata, boolean isCharging) {
+
+    }
+
+    @Override
+    public void onDataReceived(byte[] buffer, int size) {
+
     }
 
     private TimerTask startTask = new TimerTask() {
@@ -45,26 +63,5 @@ public class StartAppActivity extends Activity {
         if (mTimer != null)
             mTimer.cancel();
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        hintWindow();
-    }
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && Build.VERSION.SDK_INT >= 19) {
-            hintWindow();
-        }
-    }
-    private void hintWindow() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-    }
+
 }

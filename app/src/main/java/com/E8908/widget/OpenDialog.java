@@ -218,13 +218,6 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
         stopTask();
     }
 
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
 
 
     public interface OnOpenListener {

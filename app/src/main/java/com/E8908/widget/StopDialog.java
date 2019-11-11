@@ -55,11 +55,5 @@ public class StopDialog extends Dialog implements View.OnTouchListener {
     public void setOnMakeSuerListener(OnMakeSuerListener o){
         mOnMakeSuerListener = o;
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

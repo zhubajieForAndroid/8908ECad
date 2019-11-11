@@ -91,13 +91,6 @@ public class ReservationCodeDialog extends Dialog implements View.OnTouchListene
         }
     }
 
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
 
     public interface OnLonInListener {
         void loginListener(String code);

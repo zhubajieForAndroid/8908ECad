@@ -6,8 +6,8 @@ android {
         applicationId "com.E8908"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 4
-        versionName '1.3'
+        versionCode 8
+        versionName '1.7'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         //Jpush,腾讯应用升级
         ndk {
@@ -36,6 +36,7 @@ android {
     aaptOptions.useNewCruncher = false
     productFlavors {
     }
+
 }
 
 dependencies {
@@ -52,11 +53,11 @@ dependencies {
     implementation 'io.github.openfeign:feign-gson:9.4.0'
     //进度条
     implementation 'me.zhouzhuo.zzhorizontalprogressbar:zz-horizontal-progressbar:1.0.3'
-    /*  //内存泄露检查工具
-                                   debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
-                                   releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
-                                   // Optional, if you use support library fragments:
-                                    debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.2'*/
+    //内存泄露检查工具
+    /* debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+        releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
+        // Optional, if you use support library fragments:
+        debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.2'*/
     //图标库(曲线图,柱状图)
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
     //图片压缩鲁班
@@ -67,4 +68,6 @@ dependencies {
     //腾讯软件升级
     implementation 'com.tencent.bugly:crashreport_upgrade:latest.release'
     implementation 'com.tencent.bugly:nativecrashreport:latest.release'
+    //OKSocket
+    api 'com.tonystark.android:socket:latest.release'
 }

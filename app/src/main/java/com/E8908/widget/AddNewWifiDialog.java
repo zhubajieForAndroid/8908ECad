@@ -16,6 +16,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.E8908.R;
+import com.E8908.util.NavigationBarUtil;
 
 /**
  * Created by dell on 2018/3/20.
@@ -64,6 +65,8 @@ public class AddNewWifiDialog extends Dialog implements View.OnTouchListener {
         }
 
     }
+
+
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {

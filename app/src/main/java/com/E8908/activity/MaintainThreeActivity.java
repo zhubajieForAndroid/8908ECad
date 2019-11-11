@@ -1,6 +1,7 @@
 package com.E8908.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -18,6 +19,7 @@ import com.E8908.base.MyApplication;
 import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
+import com.E8908.util.SharedPreferencesUtils;
 import com.E8908.widget.OpenDialog;
 import com.E8908.widget.ToastUtil;
 import com.clj.fastble.data.BleDevice;
@@ -61,7 +63,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     private String mEquipmentID;
     private String mCarNumber;
     private boolean isQueryVersion = true;          //是否查询版本信息
-    private int mVersionState = -1;              //默认是修理厂配置
+    private int mVersionState = 1;              //默认是4S配置
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +80,15 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         mOpenDialog = new OpenDialog(this, R.style.dialog);
         mOpenDialog.setOnOpenListener(this);
         mOpenDialog.setOnCancelButtonListener(this);
+        SharedPreferences bleUpdataPkSp = SharedPreferencesUtils.getBleUpdataPkSp();
+        SharedPreferences.Editor edit = bleUpdataPkSp.edit();
+        if (!TextUtils.isEmpty(mPk)){
+            edit.putString("upPk",mPk);
+        }else {
+            edit.putString("upPk","");
+        }
+        edit.apply();
+
         initData();
     }
 
@@ -169,10 +180,15 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata,boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging){
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            }else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -296,9 +312,6 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                     intent.putExtra("equipmentID", mEquipmentID);
                     startActivity(intent);
                     finish();
-                }else {         //-1说明没有读取到,在从新读取一次
-                    mCurrentState = 4;
-                    SendUtil.queryVersionInfo();
                 }
             }
 

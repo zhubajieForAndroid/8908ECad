@@ -88,7 +88,7 @@ public class GasDialog extends Dialog {
     };
 
     private void analysisData(byte[] buffer) {
-        if (buffer == null)
+        if (buffer == null || buffer.length <= 0)
             return;
         String checkGasState = DataBleUtil.getBleCheckGasState(buffer);       //气体检测仪的状态
         String preheatState = checkGasState.substring(7, 8);  //预热状态
@@ -182,11 +182,5 @@ public class GasDialog extends Dialog {
         ButterKnife.unbind(this);
         super.dismiss();
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

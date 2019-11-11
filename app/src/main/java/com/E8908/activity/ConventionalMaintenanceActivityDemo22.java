@@ -37,10 +37,10 @@ import com.E8908.base.MyApplication;
 import com.E8908.blueTooth.SendBleDataService;
 import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
-import com.E8908.util.FileUtil;
-import com.E8908.util.IoUtils;
 import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.SendUtil;
+import com.E8908.util.SharedPreferencesUtils;
+import com.E8908.util.StringUtils;
 import com.E8908.widget.AddErrorDialog;
 import com.E8908.widget.BackErrorDialog;
 import com.E8908.widget.BitmapUtil;
@@ -49,6 +49,7 @@ import com.E8908.widget.GasDialog;
 import com.E8908.widget.LinkErrorDialog;
 import com.E8908.widget.StopDialog;
 import com.E8908.widget.ToastUtil;
+import com.E8908.widget.VideoDialog;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -65,9 +66,9 @@ import me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar;
 
 /**
  * 自定义模式,常规2019年4月22日20:14:32 修改 回收成功标记(电子秤数值没变化并且回收大于300ML) 根据标记判断是否跳过第一次的回收
- *              添加通讯断开弹窗
+ * 添加通讯断开弹窗
  */
-public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implements View.OnClickListener, DialogInterface.OnDismissListener {
+public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implements View.OnClickListener, DialogInterface.OnDismissListener, BackErrorDialog.OnBackClickListener {
     private static final String TAG = "MaintenanceActivity";
     @Bind(R.id.btn_start)
     ImageView mBtnStart;
@@ -257,6 +258,12 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
     private LinkErrorDialog mLinkErrorDialog;
     private BackErrorDialog mBackErrorDialog;
     private Handler mHandler;
+    //private boolean isUpdataChangeNumber = true;            //是否更新加注量
+    private boolean isLong = false;                         //在回收错误时是否永久弹窗
+    private int mCount = 0;
+    private Timer mTimer;
+    private int mTemperature;
+    private String mTemperatureStateStr;
 
 
     @Override
@@ -267,20 +274,21 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         Intent intent = getIntent();
         mIsRoutine = intent.getBooleanExtra("isRoutine", false);
         mIsStar = intent.getBooleanExtra("isStart", false);         //自启动
-        mPk = intent.getStringExtra("pk");                      //接车单ID
         mShopName = intent.getStringExtra("shopName");          //门店名称
         String equipmentID = intent.getStringExtra("equipmentID");
         String carNumber = intent.getStringExtra("carNumber");
         mBleDeviceMac = intent.getStringExtra("BleDeviceMac");
         mHandler = new Handler();
-        //启动连接蓝牙的服务
-        Intent bleIntent = new Intent(this, SendBleDataService.class);
-        bleIntent.putExtra("BleDeviceMac", mBleDeviceMac);
-        bleIntent.putExtra("shopName", mShopName);
-        bleIntent.putExtra("pk", mPk);
-        bleIntent.putExtra("carNumber", carNumber);
-        bleIntent.putExtra("equipmentID", equipmentID);
-        startService(bleIntent);
+        if (!StringUtils.isServiceRunning(this, "com.E8908.blueTooth.SendBleDataService")) {
+            //启动连接蓝牙的服务
+            Intent bleIntent = new Intent(this, SendBleDataService.class);
+            bleIntent.putExtra("BleDeviceMac", mBleDeviceMac);
+            bleIntent.putExtra("shopName", mShopName);
+            bleIntent.putExtra("carNumber", carNumber);
+            bleIntent.putExtra("equipmentID", equipmentID);
+            startService(bleIntent);
+        }
+
 
         sp = getSharedPreferences("old", 0);
         mPreferences = getSharedPreferences("workStateByGas", 0);
@@ -290,9 +298,10 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         mCompleteDialog.setOnDismissListener(this);
 
         mErrorDialog = new AddErrorDialog(this, R.style.dialog, R.mipmap.popovers_failed_01);
-        mLinkErrorDialog = new LinkErrorDialog(this,R.style.dialog);
-        mBackErrorDialog = new BackErrorDialog(this,R.style.dialog);
+        mLinkErrorDialog = new LinkErrorDialog(this, R.style.dialog);
+        mBackErrorDialog = new BackErrorDialog(this, R.style.dialog);
         mBackErrorDialog.setID(R.mipmap.home_popovers_hint_04);
+        mBackErrorDialog.setOnBackClickListener(this);
         initListener();
         initData();
     }
@@ -351,47 +360,23 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                     //保存一次剩余的升数
                     SharedPreferences.Editor edit = sp.edit();
                     edit.putInt("oldNumber", Integer.parseInt(mRiseNumbwe, 16));
-                    edit.commit();
+                    edit.apply();
                     //取出回收标记,判断是否在净化阶段已经回收成功过2019-4-22 11:25:32
-                    File runingEquipmentSign = FileUtil.createNewFile("RuningEquipmentSign", "backSign.txt");
-                    String backSign = null;
-                    try {
-                        BufferedReader br = new BufferedReader(new FileReader(runingEquipmentSign));
-                        backSign = br.readLine();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    if ("true".equals(backSign)) {           //表示在净化阶段已经回收成功过了,跳过回收直接加注
+                    SharedPreferences runBackSuccess = SharedPreferencesUtils.getRunBackSuccess();
+                    boolean isBackSuccess = runBackSuccess.getBoolean("isBackSuccess", false);
+                    if (isBackSuccess) {           //表示在净化阶段已经回收成功过了,跳过回收直接加注
                         mPb.setProgress(100);
                         mProgressTvOne.setText(100 + "%");
                         currentState = 3;
                         SendUtil.closeAll();
-                        //跳过第一阶段的时候,吧状态设置为false
-                        try {
-                            BufferedWriter bw = new BufferedWriter(new FileWriter(runingEquipmentSign));
-                            bw.write("false");
-                            IoUtils.closeFileStream(bw);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        //跳过第一阶段的时候,吧状态设置为false,在没有到进化阶段的时候,防止每次都跳过第一阶段的回收
+                        SharedPreferences.Editor backEdit = runBackSuccess.edit();
+                        backEdit.putBoolean("isBackSuccess", false);
+                        backEdit.apply();
                     } else {                                    //弹出回收失败的提示框
-                        int i = Integer.parseInt(mDepthWorkNumbwe, 16);
-                        int i1 = Integer.parseInt(mRoutineWorkNumbwe, 16);
-                        if (mIsRoutine){
-                            if (i1 >0 && "false".equals(backSign)){
-                                if (!mBackErrorDialog.isShowing())
-                                    mBackErrorDialog.show();
-                            }
-                        }else {
-                            if (i > 0 && "false".equals(backSign)){
-                                if (!mBackErrorDialog.isShowing())
-                                    mBackErrorDialog.show();
-                            }
-                        }
                         //开启定时器3秒之后比较剩余的升数
                         startCheckTimeTask(false);
                     }
-
                 } else {
                     currentState = 1;
                     //开启4#触点
@@ -481,16 +466,21 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                     mProgressTvTwo.setVisibility(View.GONE);
                     if (mIsRoutine) {
                         mConvertionalTextviewTitle.setText("正在为爱车清洗杀菌消毒");
-                        currentState = 14;
-                        //设置工作状态为正在臭氧杀菌和正在雾化
-                        SendUtil.setWorkState(80);
+                        if (mTemperature >= 0) {
+                            currentState = 14;
+                            //设置工作状态为正在臭氧杀菌和正在雾化
+                            SendUtil.setWorkState(80);
+                        }else {                             //温度小于0度不进行雾化状态设置为正在臭氧杀菌
+                            currentState = 14;
+                            //设置工作状态为正在臭氧杀菌
+                            SendUtil.setWorkState(64);
+                        }
                     } else {
                         mConvertionalTextviewTitle.setText("正在进行爱车室内环境综合治理");
                         currentState = 31;
                         //设置工作状态为正在雾化
                         SendUtil.setWorkState(16);
                     }
-
                 }
                 break;
             case 14:
@@ -501,9 +491,15 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                         startOneTask(mDepthOneRunTime);    //臭氧运行时间
                     }
                 } else {
-                    currentState = 14;
-                    //设置工作状态为正在臭氧杀菌和正在雾化
-                    SendUtil.setWorkState(80);
+                    if (mTemperature >= 0) {
+                        currentState = 14;
+                        //设置工作状态为正在臭氧杀菌和正在雾化
+                        SendUtil.setWorkState(80);
+                    }else {
+                        currentState = 14;
+                        //设置工作状态为正在臭氧杀菌
+                        SendUtil.setWorkState(64);
+                    }
                 }
                 break;
             case 31:
@@ -542,9 +538,6 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                         SendUtil.setWorkState(64);
                     }
 
-                } else {
-                    currentState = 7;
-                    SendUtil.open8();
                 }
                 break;
             case 15:
@@ -631,9 +624,9 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                     SendUtil.setWorkState(0);
                 } else {
                     currentState = 10;
-                    if (mDepthThreeRunTime == 0){           //第三阶段的时间是0表示没有开启过第三阶段
+                    if (mDepthThreeRunTime == 0) {           //第三阶段的时间是0表示没有开启过第三阶段
                         SendUtil.closeAll();
-                    }else {                                 //开启过第三阶段
+                    } else {                                 //开启过第三阶段
                         //关闭其他所有的,单独开启6触点
                         SendUtil.closeOthre();
                     }
@@ -837,13 +830,13 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
             case 28:
                 if (isSuccess) {
                     currentState = 0;
-                    if (mIsRoutine){
+                    if (mIsRoutine) {
                         //关闭其他所有的,单独开启6触点
                         SendUtil.closeOthre();
-                    }else {
-                        if (mDepthThreeRunTime == 0){           //第三阶段的时间是0表示没有开启过第三阶段
+                    } else {
+                        if (mDepthThreeRunTime == 0) {           //第三阶段的时间是0表示没有开启过第三阶段
                             SendUtil.closeAll();
-                        }else {                                 //开启过第三阶段
+                        } else {                                 //开启过第三阶段
                             //关闭其他所有的,单独开启6触点
                             SendUtil.closeOthre();
                         }
@@ -900,22 +893,64 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         mBtnStart.setImageResource(R.mipmap.btn_pause_normal);
         if (mIsRoutine) {            //常规
             if ((mRoutineOzoneRunTime - mRoutineTwoRunTime) == 0) {             //没有臭氧时间
-                currentState = 27;
-                SendUtil.open8();
+                if (mTemperature >= 0){
+                    currentState = 27;
+                    SendUtil.open8();
+                }else {         //没有臭氧,温度又低于0度不能雾化,直接进去净化阶段
+                    ToastUtil.showMessageLong("当前环境温度低于0度,无法进行雾化");
+                    //进入第三阶段
+                    currentState = 8;
+                    //关闭#7#8
+                    SendUtil.closeAll();
+                }
             } else {
-                currentState = 6;
-                SendUtil.open7And8();
+                if ("1".equals(mTemperatureStateStr)){              //温度传感器异常
+                    currentState = 6;
+                    SendUtil.open7And8();
+                }else {
+                    if (mTemperature >= 0){
+                        currentState = 6;
+                        SendUtil.open7And8();
+                    }else {
+                        ToastUtil.showMessageLong("当前环境温度低于0度,无法进行雾化");
+                        currentState = 6;
+                        SendUtil.open7();
+                    }
+                }
+
             }
         } else {                     //深度
-            if (mDepthOneRunTime == 0) {                //开启臭氧
+            if (mDepthOneRunTime == 0) {                //开启臭氧5
                 currentState = 7;
                 SendUtil.open7();
-            } else if (mDepthTwoRunTime == 0) {          //开启雾化
-                currentState = 6;
-                SendUtil.open8();
-            } else {                 //时间都有,先进行雾化,臭氧,净化
-                currentState = 6;
-                SendUtil.open8();
+            } else if (mDepthTwoRunTime == 0) {          //开启雾化0
+                if (!"1".equals(mTemperatureStateStr)) {              //温度传感器异常
+                    currentState = 6;
+                    SendUtil.open8();
+                }else {
+                    if (mTemperature >= 0) {
+                        currentState = 6;
+                        SendUtil.open8();
+                    }else {
+                        ToastUtil.showMessageLong("当前环境温度低于0度,无法进行雾化");
+                        currentState = 7;
+                        SendUtil.open7();
+                    }
+                }
+            } else {                 //时间都有,先进行雾化,臭氧,净化2
+                if ("1".equals(mTemperatureStateStr)) {              //温度传感器异常
+                    currentState = 6;
+                    SendUtil.open8();
+                }else {
+                    if (mTemperature >= 0) {
+                        currentState = 6;
+                        SendUtil.open8();
+                    }else {
+                        ToastUtil.showMessageLong("当前环境温度低于0度,无法进行雾化");
+                        currentState = 7;
+                        SendUtil.open7();
+                    }
+                }
             }
         }
 
@@ -967,6 +1002,19 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         finish();
     }
 
+    @Override
+    public void backListener() {
+        if (isLong) {
+            if (mBackErrorDialog.isShowing()) {
+                mBackErrorDialog.dismiss();
+                finish();
+            }
+        } else {
+            if (mBackErrorDialog.isShowing())
+                mBackErrorDialog.dismiss();
+        }
+    }
+
     /**
      * 第一阶段的任务
      */
@@ -983,10 +1031,18 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                 isStartingOne = true;
                 if (oneRecordTimeSecond >= (mTime * 60)) {          //第一阶段雾化和臭氧运行时间到
                     if (mIsRoutine) {
-                        //进入第二阶段
-                        //打开8#
-                        currentState = 7;
-                        SendUtil.open8();
+                        if (mTemperature >= 0) {
+                            //进入第二阶段
+                            //打开8#
+                            currentState = 7;
+                            SendUtil.open8();
+                        }else {                     //温度小于0度,不进行雾化了,直接进入第三阶段
+                            //进入第三阶段
+                            currentState = 8;
+                            //关闭#7#8
+                            SendUtil.closeAll();
+                            closeOneTask();
+                        }
                     } else {
                         if (mDepthTwoRunTime == 0) {         //第二阶段时间为0跳过第二阶段到第三阶段
                             //进入第三阶段
@@ -1060,7 +1116,6 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
             if (controlTwoTaskState) {
                 isStartingOne = false;
                 isStartingTwo = true;
-
                 if (mIsRoutine) {
                     result = mRoutineOzoneRunTime * 60;
                     if (mIsData) {
@@ -1501,6 +1556,7 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
      * 开启检查液体定时器
      */
     private void startCheckTimeTask(boolean b) {
+        isBackScuress = true;
         currentState = 0;    //防止在运行的同时发送心跳数据返回失败,至0为了在接受到数据时不做任何处理
         if (b) {
             mBtnStart.setClickable(true);
@@ -1537,6 +1593,7 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
     private class CheckTimeTask extends TimerTask {
         private boolean isThree;
         private SharedPreferences mPreferences;
+
         public CheckTimeTask(boolean b) {
             isThree = b;
             //保存刚开始回收时电子秤的数值
@@ -1550,9 +1607,8 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         @Override
         public void run() {
             int addOnestate = mPreferences.getInt("addOnestate", 0);
-
-            float oldNumber = sp.getInt("oldNumber", 0);
-            float vount = Integer.parseInt(mRiseNumbwe, 16);
+            float oldNumber = sp.getInt("oldNumber", 0);                    //开始回收的初始值
+            float vount = Integer.parseInt(mRiseNumbwe, 16);                        //回收过程中的值
             final float result = (oldNumber / vount) * 100;
             runOnUiThread(new Runnable() {
                 @Override
@@ -1561,43 +1617,79 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                     mProgressTvOne.setText((int) result + "%");
                 }
             });
-            if (isThree && isBackScuress){
-                if (Math.abs(vount - addOnestate) >= 300) {     //说明回收了300ML升,回收成功保存标记,为了在准备阶段时是否跳过第一段的回收2019年4月22日11:09:23
-                    isBackScuress = false;
-                    File runingEquipmentSign = FileUtil.createNewFile("RuningEquipmentSign", "backSign.txt");
-                    try {
-                        BufferedWriter bw = new BufferedWriter(new FileWriter(runingEquipmentSign));
-                        bw.write("true");
-                        IoUtils.closeFileStream(bw);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+            if (isBackScuress && Math.abs(vount - addOnestate) >= 300) {     //说明回收了300ML升,回收成功保存标记,为了在准备阶段时是否跳过第一段的回收2019年4月22日11:09:23
+                isBackScuress = false;
             }
             if ((vount - oldNumber) < 10) {     //剩余的液体和3秒之前的一样,回收结束,关闭#4
-                if (isThree) {              //回收完成保存标记,为了在准备阶段时是否跳过第一段的回收2019年4月22日11:09:23
+                SharedPreferences backErrorNumberSp = SharedPreferencesUtils.getBackErrorNumberSp();
+                int errorNumber = backErrorNumberSp.getInt("errorNumber", 0);
+                if (isThree) {              //第三阶段,回收完成保存标记,为了在准备阶段时是否跳过第一段的回收2019年4月22日11:09:23
                     currentState = 22;
                     SendUtil.open6();
-                    if (isBackScuress){            //判断是否回收了300ML,是就代表回收300成功,否回收失败,发出响声5下
+                    if (isBackScuress) {            //判断是否回收了300ML,是就代表回收300成功,否回收失败,发出响声5下
                         SystemClock.sleep(200);
                         SendUtil.controlVoiceFive();
-                        File runingEquipmentSign = FileUtil.createNewFile("RuningEquipmentSign", "backSign.txt");
-                        try {
-                            BufferedWriter bw = new BufferedWriter(new FileWriter(runingEquipmentSign));
-                            bw.write("false");
-                            IoUtils.closeFileStream(bw);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        //第三阶段保存回收失败的标记
+                        SharedPreferences runBackSuccess = SharedPreferencesUtils.getRunBackSuccess();
+                        SharedPreferences.Editor editSuccess = runBackSuccess.edit();
+                        editSuccess.putBoolean("isBackSuccess", false);
+                        editSuccess.apply();
+                        //保存回收失败的次数
+                        SharedPreferences.Editor edit = backErrorNumberSp.edit();
+                        edit.putInt("errorNumber", errorNumber + 1);
+                        edit.apply();
+                    } else {             //回收成功清除次数
+                        SharedPreferences.Editor edit = backErrorNumberSp.edit();
+                        edit.putInt("errorNumber", 0);
+                        edit.apply();
+
+                        SharedPreferences runBackSuccess = SharedPreferencesUtils.getRunBackSuccess();
+                        SharedPreferences.Editor backEdit = runBackSuccess.edit();
+                        backEdit.putBoolean("isBackSuccess", true);
+                        backEdit.apply();
                     }
                 } else {
-                    currentState = 3;
-                    SendUtil.closeAll();
+                    if (isBackScuress) {             //第一阶段的回收失败
+                        if (errorNumber >= 3) {          //回收失败大于等于4次就不在进行下一步了
+                            isLong = true;
+                            startTimeTask();
+                            stopCheckTimeTask();
+                            SendUtil.closeAll();
+                            //失败3次了清除失败的次数
+                            SharedPreferences.Editor edit = backErrorNumberSp.edit();
+                            edit.putInt("errorNumber", 0);
+                            edit.apply();
+                        } else {
+                            //保存回收失败的次数
+                            isLong = false;
+                            SharedPreferences.Editor edit = backErrorNumberSp.edit();
+                            edit.putInt("errorNumber", errorNumber + 1);
+                            edit.apply();
+                            startTimeTask();
+                            currentState = 3;
+                            SendUtil.closeAll();
+                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!mBackErrorDialog.isShowing()) {
+                                    mBackErrorDialog.show();
+                                }
+                            }
+                        });
+                    } else {                 //回收成功清除次数
+                        SharedPreferences.Editor edit = backErrorNumberSp.edit();
+                        edit.putInt("errorNumber", 0);
+                        edit.apply();
+                        //isUpdataChangeNumber = true;
+                        currentState = 3;
+                        SendUtil.closeAll();
+                    }
                 }
             } else {
                 SharedPreferences.Editor edit = sp.edit();
                 edit.putInt("oldNumber", (int) vount);
-                edit.commit();
+                edit.apply();
             }
         }
     }
@@ -1621,10 +1713,15 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata, boolean isCharging) {
         if (isdata && isYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging) {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            } else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
             if (mLinkErrorDialog.isShowing())
                 mLinkErrorDialog.dismiss();
             if (isStartingOne && isAppearError) {             //第一阶段长在运行了
@@ -1672,7 +1769,8 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         String state = DataUtil.getState(buffer);                           //状态位
         //获取液体剩余升数
         mRiseNumbwe = DataUtil.getRiseNumbwe(buffer);
-
+        //温度
+        mTemperature = DataUtil.getTemperature(buffer);
 
         //获取深度保养次数
         mDepthWorkNumbwe = DataUtil.getDepthWorkNumbwe(buffer);
@@ -1680,6 +1778,7 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         mRoutineWorkNumbwe = DataUtil.getRoutineWorkNumbwe(buffer);
 
         //获取加注量
+        //if (isUpdataChangeNumber)
         mAddNumbwe = DataUtil.getAddNumbwe(buffer) * 10;
         //常规模式第一阶段臭氧和雾化共同运行时间
         mRoutineOzoneRunTime = DataUtil.getRoutineOzoneRunTime(buffer);
@@ -1756,12 +1855,12 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         //00011000
         String afterLockState = state.substring(1, 2);                       //后门锁定状态
         String frontLockState = state.substring(2, 3);                       //前门锁定状态
-        String temperatureState = state.substring(0, 1);                       //温度传感器连接状态
-        if (temperatureState.equals("1")) {
+        //温度传感器连接状态
+        mTemperatureStateStr = state.substring(0, 1);
+        if (mTemperatureStateStr.equals("1")) {
             mTemperatureState.setText("- -");
         } else {
-            int temperature = DataUtil.getTemperature(buffer);                  //温度
-            mTemperatureState.setText(temperature + "℃");
+            mTemperatureState.setText(mTemperature + "℃");
         }
         //00011001
         if (frontLockState.equals("1")) {
@@ -1860,13 +1959,13 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
     @Override
     protected void onStart() {
         super.onStart();
-        if (mIsStar){
+        if (mIsStar) {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mBtnStart.performClick();
                 }
-            },1000);
+            }, 1000);
         }
     }
 
@@ -1875,8 +1974,11 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (Constants.BLE_DATA.equals(action)) {
-                final byte[] buffer = intent.getByteArrayExtra("data");
-                mAdapter.setData(buffer, mIsRoutine, false);
+                boolean isLinkBle = intent.getBooleanExtra("isLinkBle", false);
+                if (isLinkBle) {
+                    final byte[] buffer = intent.getByteArrayExtra("data");
+                    mAdapter.setData(buffer, mIsRoutine, false);
+                }
             }
         }
     };
@@ -1988,12 +2090,7 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                                 lp.height = 630;
                                 lp.width = 1055;
                                 mwindow.setAttributes(lp);
-                                NavigationBarUtil.focusNotAle(mVideoDialog.getWindow());
                                 mVideoDialog.show();
-                                //显示虚拟栏的时候 隐藏
-                                NavigationBarUtil.hideNavigationBar(mVideoDialog.getWindow());
-                                //再清理失能焦点
-                                NavigationBarUtil.clearFocusNotAle(mVideoDialog.getWindow());
                                 mPlear.start();
                                 mVideoDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                                     @Override
@@ -2009,7 +2106,6 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                                         }
                                     }
                                 });
-
                             }
                         }
 
@@ -2044,16 +2140,25 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                         isStart = false;
                         if (isOneStart) {           //是否第一次点击开始按钮   ,true表示没有暂停过
                             if (mIsRoutine) {
+                                currentState = 1;
+                                //开启4#触点
+                                SendUtil.open4();
                                 mConvertionalTextviewTitle.setText("正在常规养护模式");
                             } else {
+                                if (mDepthOneRunTime == 0) {         //雾化时间0时不加注和回收了,直接跳过准备阶段,修改时间2019-8-12 14:13:51
+                                    //打开7,8
+                                    startOne();
+                                } else {
+                                    currentState = 1;
+                                    //开启4#触点
+                                    SendUtil.open4();
+                                }
                                 mConvertionalTextviewTitle.setText("正在自定义养护模式");
                             }
                             mConvertionalTextviewProgress.setVisibility(View.VISIBLE);
                             mConvertionalTextviewProgress.setText("0");
                             mBai.setVisibility(View.VISIBLE);
-                            currentState = 1;
-                            //开启4#触点
-                            SendUtil.open4();
+
                         } else {
                             if (isStartingOne) {             //第一阶段长在运行了
                                 currentState = 19;
@@ -2114,13 +2219,47 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
 
     }
 
+    /*消失弹窗倒计时开始*/
+    public void startTimeTask() {
+        if (mTimer == null) {
+            mTimer = new Timer();
+            mTimer.schedule(mTimerTask, 1000, 1000);
+        }
+    }
 
+    public void stopTimeTask() {
+        if (mTimer != null) {
+            mTimer.cancel();
+            if (mBackErrorDialog != null && mBackErrorDialog.isShowing())
+                mBackErrorDialog.dismiss();
+        }
+    }
+
+    private TimerTask mTimerTask = new TimerTask() {
+        @Override
+        public void run() {
+            if (!isLong) {
+                mCount++;
+                if (mCount >= 3) {                   //5秒时间退出弹窗
+                    MyApplication.getmHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mBackErrorDialog.isShowing())
+                                mBackErrorDialog.dismiss();
+                        }
+                    });
+                    stopTimeTask();
+                }
+            }
+        }
+    };
+
+    /*消失弹窗倒计时结束*/
     @Override
     protected void onDestroy() {
         super.onDestroy();
         SendUtil.setWorkState(0);
-        Intent bleIntent = new Intent(this, SendBleDataService.class);
-        stopService(bleIntent);
+
         unregisterReceiver(mReceiver);
         unregisterReceiver(mBleReceiver);
         stopRecordTime();
@@ -2131,14 +2270,16 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         closeOneTask();
         stopThreeTask();
         stopCheckliquidTask();
-        if (mIsRoutine){
+
+        stopTimeTask();
+        if (mIsRoutine) {
             //关闭其他所有的,单独开启6触点
             SendUtil.closeOthre();
-        }else {
-            if (mIsStar){
-                if (mDepthThreeRunTime == 0){           //第三阶段的时间是0表示没有开启过第三阶段
+        } else {
+            if (mIsStar) {
+                if (mDepthThreeRunTime == 0) {           //第三阶段的时间是0表示没有开启过第三阶段
                     SendUtil.closeAll();
-                }else {                                 //开启过第三阶段
+                } else {                                 //开启过第三阶段
                     //关闭其他所有的,单独开启6触点
                     SendUtil.closeOthre();
                 }
@@ -2182,5 +2323,6 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                 }
             }
         }
+
     }
 }

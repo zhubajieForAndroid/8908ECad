@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 import com.E8908.R;
+import com.E8908.util.NavigationBarUtil;
 
 import static android.support.constraint.Constraints.TAG;
 
@@ -36,6 +37,8 @@ public class VideoDialog extends Dialog implements View.OnTouchListener{
     private int mCurrentVolume;
     private int mCurrentPosition;
     private OnCurrentPosition mOnCurrentPosition;
+    private Window mMwindow;
+
     public VideoDialog(Context context, int themeResId, String uriOne, int currentPosition) {
         super(context, themeResId);
         mUrl = uriOne;
@@ -48,12 +51,12 @@ public class VideoDialog extends Dialog implements View.OnTouchListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_dialog_video);
         mVideoView = findViewById(R.id.video_dialog);
-        Window mwindow = getWindow();
-        WindowManager.LayoutParams lp = mwindow.getAttributes();
+        mMwindow = getWindow();
+        WindowManager.LayoutParams lp = mMwindow.getAttributes();
         lp.dimAmount = 0f;
         lp.height = 800;
         lp.width = 1280;
-        mwindow.setAttributes(lp);
+        mMwindow.setAttributes(lp);
         mVideoView.setVideoPath(mUrl);
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override

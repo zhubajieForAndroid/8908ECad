@@ -57,11 +57,5 @@ public class InputCarNumberHinDialog extends Dialog implements View.OnTouchListe
     public void setOnMakeSureBtnClickListener(OnMakeSureBtnClickListener onMakeSureBtnClickListener) {
         mOnMakeSureBtnClickListener = onMakeSureBtnClickListener;
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

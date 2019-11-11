@@ -1,52 +1,59 @@
 package com.E8908.activity;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import com.E8908.adapter.HomeVideoPagerAdapter;
-import com.E8908.util.BItmapUtil;
-import com.E8908.util.OkhttpManager;
+
 import com.E8908.R;
+import com.E8908.adapter.HomeDataAdapter;
+import com.E8908.adapter.HomeVideoPagerAdapter;
 import com.E8908.base.BaseActivity;
 import com.E8908.base.MyApplication;
 import com.E8908.bean.RowsBean;
+import com.E8908.blueTooth.SendBleDataService;
 import com.E8908.conf.Constants;
+import com.E8908.manage.SocketManage;
+import com.E8908.thread.WifiLinkService;
 import com.E8908.util.DataUtil;
+import com.E8908.util.OkhttpManager;
 import com.E8908.util.SendUtil;
 import com.E8908.util.StringUtils;
 import com.E8908.widget.ActivationDialog;
-import com.E8908.widget.BitmapUtil;
 import com.E8908.widget.IsLockDialog;
 import com.E8908.widget.JurisdictionDialog;
 import com.E8908.widget.LinkSeverDialog;
 import com.E8908.widget.StopDialog;
 import com.E8908.widget.ToastUtil;
+import com.clj.fastble.BleManager;
 import com.tencent.bugly.beta.Beta;
-
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +63,8 @@ import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
+
+import static android.support.constraint.Constraints.TAG;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener {
@@ -76,14 +85,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     ImageView mToobarBgImage;
     @Bind(R.id.temperature_state)
     TextView mTemperatureState;
-    @Bind(R.id.work_ranking)
-    TextView mWorkRanking;
-    @Bind(R.id.work_ranking_month)
-    TextView mWorkRankingMonth;
-    @Bind(R.id.work_in_ranking)
-    TextView mWorkInRanking;
-    @Bind(R.id.work_in_ranking_month)
-    TextView mWorkInRankingMonth;
+    @Bind(R.id.tab_layout)
+    TabLayout mTabLayout;
+    @Bind(R.id.view_pager)
+    ViewPager mViewPager;
 
 
     private boolean isYesData = false;
@@ -97,7 +102,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private boolean isShowLoack = true;
     private boolean isDisLoack = true;
     private ActivationDialog mDialog;
-    private LinkSeverDialog mLinkSeverDialog;
+    //private LinkSeverDialog mLinkSeverDialog;
     private boolean isNoLink = true;
     private boolean isAgoLock = false;
     private boolean isAfterLock = false;
@@ -106,12 +111,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private int mAddNumbwe;
     private String mIsProhibit;
     private AudioManager mManager;
-    private TextView mEquipmentID;
-    private TextView mSurplusOil;
     private List<RowsBean> mResponse;
     private double mCurrentState;
     private SharedPreferences mJumpStateInfo;
     private JurisdictionDialog mJuDialog;
+    private HomeDataAdapter mHomeDataAdapter;
+    private String mType;
+    private int mRankings;
+    private boolean isLoadRank = true;          //是否请求排名
+    private Map<String,Object> rankingMap = new HashMap<>();        //排名信息
 
 
     @Override
@@ -122,10 +130,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mLockDialog = new IsLockDialog(this, R.style.dialog, R.mipmap.suoding);
         mDialog = new ActivationDialog(this, R.style.dialog);
         mStopDialog = new StopDialog(this, R.style.dialog);
-        mLinkSeverDialog = new LinkSeverDialog(this, R.style.dialog, R.mipmap.popovers_2);
+        //mLinkSeverDialog = new LinkSeverDialog(this, R.style.dialog, R.mipmap.popovers_2);
         //输入权限码开启前门弹窗
         mJuDialog = new JurisdictionDialog(this, R.style.dialog);
         mJuDialog.setOnCheckJListener(this);
+
+        //注册广播接受者接受蓝牙数据
+        IntentFilter blefilter = new IntentFilter();
+        blefilter.addAction(Constants.BLE_DATA);
+        registerReceiver(mBleReceiver, blefilter);
+
         initView();
         initData();
         //加载视频
@@ -163,13 +177,30 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
     }
 
-
+    private BroadcastReceiver mBleReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (Constants.BLE_DATA.equals(action)) {
+                boolean isLinkBle = intent.getBooleanExtra("isLinkBle", false);
+                if (isLinkBle) {
+                    byte[] buffer = intent.getByteArrayExtra("data");
+                    String bleID = intent.getStringExtra("bleID");
+                    mHomeDataAdapter.setData(buffer,rankingMap,true,bleID);
+                }else {
+                    //ToastUtil.showMessage("连接失败");
+                }
+                mHomeDataAdapter.setLinkBleState(isLinkBle);
+            }
+        }
+    };
     //串口数据
     @Override
     public void onDataReceived(final byte[] buffer, int size) {
         isYesData = true;
         if (size == Constants.DATA_LONG && buffer[2] == 0x03) {
             analysisData(buffer);
+            mHomeDataAdapter.setData(buffer,rankingMap,false,"");
         }
         if (size == Constants.SET_RESULT_LINGTH) {
             setResultData(buffer);
@@ -195,10 +226,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata, boolean isCharging) {
         if (isdata && isYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging) {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            } else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
+
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -207,6 +244,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private void analysisData(byte[] buffer) {
+
         String state = DataUtil.getState(buffer);                           //状态位
         String riseNumbwe = DataUtil.getRiseNumbwe(buffer);                 //获取液体升数
 
@@ -222,16 +260,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         int signalStrength = DataUtil.getSignalStrength(buffer);            //获取信号强度
         //获取序列号
         mEquipmentNumber = DataUtil.getEquipmentNumber(buffer);
-        if (!TextUtils.isEmpty(mEquipmentNumber))
-            mEquipmentID.setText(mEquipmentNumber);
+        if (!TextUtils.isEmpty(mEquipmentNumber) && !"00000000".equals(mEquipmentNumber) && isLoadRank) {
+            isLoadRank = false;
+            loadRankData();
+        }
         //药液量
         mResultRatioNumbwe = Integer.parseInt(riseNumbwe, 16);
         //设置剩余量
-        if (mResultRatioNumbwe < Constants.MAX_NUMBER) {
-            mSurplusOil.setText(mResultRatioNumbwe + "ML (" + (mResultRatioNumbwe / 250) + ")次");
-        } else {
-            mSurplusOil.setText(Constants.MAX_NUMBER - 1 + "ML(80次)");
-        }
+
         String connectServerState = state.substring(3, 4);                  //连接服务器状态
         String activationState = state.substring(4, 5);                     //设备激活状态
         String lockState = state.substring(5, 6);                           //设备锁定状态
@@ -240,6 +276,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         String frontLockState = state.substring(2, 3);                       //前门锁定状态
         String temperatureState = state.substring(0, 1);                       //温度传感器连接状态
         mIsProhibit = state.substring(7, 8);                                    //自定义禁用状态2019-4-28 18:54:30
+
         if (temperatureState.equals("1")) {
             mTemperatureState.setText("- -");
         } else {
@@ -265,15 +302,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             //是否连接服务器
             if (connectServerState.equals("0")) {
                 mTabImageCommunicationState.setImageResource(R.mipmap.top_icon_4_off);
-                if (isNoLink && !mLinkSeverDialog.isShowing()) {
+                /*if (isNoLink && !mLinkSeverDialog.isShowing()) {
                     isNoLink = false;
                     mLinkSeverDialog.show();
-                }
+                }*/
             } else {
-                if (mLinkSeverDialog != null) {
+                /*if (mLinkSeverDialog != null) {
                     isNoLink = true;
                     mLinkSeverDialog.dismiss();
-                }
+                }*/
                 //设置信号强度
                 switch (signalStrength) {
                     case 1:
@@ -297,9 +334,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 if (isDisDialog) {
                     isDisDialog = false;
                     isShowDialog = true;
-                    //请求排名数据
-                    loadRankData();
-
                     if (mDialog != null) {
                         mDialog.dismiss();
                     }
@@ -336,74 +370,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private void initData() {
         mToobarBgImage.setImageResource(R.mipmap.top_bar);
         mToobarBgImage.setOnTouchListener(this);
-        mLinkSeverDialog.setOnLinkSeverTimeOutLIstener(new LinkSeverDialog.OnLinkSeverTimeOutLIstener() {
-            @Override
-            public void isTimeOout(boolean b) {
-                if (b) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastUtil.showMessage("连接服务器超时");
-                            mLinkSeverDialog.dismiss();
-                        }
-                    });
-                }
-            }
-        });
-
         //是否跳过第一二步骤的标记
         mJumpStateInfo = getSharedPreferences("jumpStateInfo", 0);
+
+
+        mHomeDataAdapter = new HomeDataAdapter(this);
+
+        mViewPager.setAdapter(mHomeDataAdapter);
+        mTabLayout.setupWithViewPager(mViewPager);
     }
 
-    private void loadRankData() {
-        OkhttpManager okhttpManager = OkhttpManager.getOkhttpManager();
-        Map<String, String> pames = new HashMap<>();
-        pames.put("equipmentID", mEquipmentNumber);
-        okhttpManager.doPost(Constants.URLS.EQUIPMENT_RANK_DATA, pames, mRankingCallBack);
-    }
-
-    private Callback mRankingCallBack = new Callback() {
-        @Override
-        public void onFailure(Call call, IOException e) {
-
-        }
-
-        @Override
-        public void onResponse(Call call, Response response) throws IOException {
-            String s = response.body().string();
-            try {
-                JSONObject object = new JSONObject(s);
-                int code = object.getInt("code");
-                if (code == 0) {
-                    JSONArray jsonArray = object.getJSONArray("response");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        final String type = jsonObject.getString("TYPE");
-                        final int rankings = jsonObject.getInt("RANKINGS");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if ("rankingOfInner".equals(type)) {
-                                    mWorkInRanking.setText("第" + rankings + "名");
-                                }
-                                if ("curRankingOfInner".equals(type)) {
-                                    mWorkInRankingMonth.setText("第" + rankings + "名");
-                                }
-                                if ("curRankingOfWorld".equals(type)) {
-                                    mWorkRankingMonth.setText("第" + rankings + "名");
-                                }
-                                if ("rankingOfWorld".equals(type)) {
-                                    mWorkRanking.setText("第" + rankings + "名");
-                                }
-                            }
-                        });
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    };
 
     private void initView() {
         linearLayout_message = findViewById(R.id.tab_linearlayout_work_statistics);
@@ -430,10 +406,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         int streamMaxVolume = mManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         mManager.setStreamVolume(AudioManager.STREAM_MUSIC, streamMaxVolume, 0);
 
-        mEquipmentID = findViewById(R.id.eqeuipment_id);
-        mSurplusOil = findViewById(R.id.surplus_oil);
-
-
     }
 
     @Override
@@ -444,7 +416,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 mIntent = new Intent(MainActivity.this, WorkStatisticsActivity.class);
                 startActivity(mIntent);
                 break;
-            case R.id.about_equipment:                           //在线检测
+            case R.id.about_equipment:                           //退出
                 finish();
                 break;
             case R.id.tag_lineatrlayout_system_setup:           //设置界面
@@ -464,12 +436,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                                 mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
                                 mIntent.putExtra("isRoutine", true);
                                 startActivity(mIntent);
+
                             } else {
                                 mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
                                 mIntent.putExtra("isRoutine", true);
                                 startActivity(mIntent);
-                            }
 
+                            }
                         } else {
                             ToastUtil.showMessage("药液不足1L,请加注");
                         }
@@ -517,10 +490,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                                 mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
                                 mIntent.putExtra("isRoutine", false);
                                 startActivity(mIntent);
+
                             } else {
                                 mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
                                 mIntent.putExtra("isRoutine", false);
                                 startActivity(mIntent);
+
                             }
                         } else {
                             ToastUtil.showMessage("药液不足1L,请加注");
@@ -541,6 +516,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                                                 mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
                                                 mIntent.putExtra("isRoutine", false);
                                                 startActivity(mIntent);
+
                                             } else {
                                                 mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
                                                 mIntent.putExtra("isRoutine", false);
@@ -577,8 +553,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     protected void onStart() {
         super.onStart();
-        if (!TextUtils.isEmpty(mEquipmentNumber) && !"".equals(mEquipmentNumber)) {
-            //请求排名数据
+        if (!TextUtils.isEmpty(mEquipmentNumber) && !"00000000".equals(mEquipmentNumber)){
             loadRankData();
         }
         //每次返回主界面都设置下状态为未就绪
@@ -586,15 +561,40 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         SendUtil.setReadyState(mEquipmentNumber, 0);
     }
 
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        MyApplication.closeSerialPort();
-
+    private void loadRankData() {
+        rankingMap.clear();
+        OkhttpManager okhttpManager = OkhttpManager.getOkhttpManager();
+        Map<String, String> pames = new HashMap<>();
+        pames.put("equipmentID", mEquipmentNumber);
+        okhttpManager.doPost(Constants.URLS.EQUIPMENT_RANK_DATA, pames, mRankingCallBack);
     }
-
-
+    private Callback mRankingCallBack = new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {}
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            if (response.isSuccessful()) {
+                String s = response.body().string();
+                try {
+                    JSONObject object = new JSONObject(s);
+                    int code = object.getInt("code");
+                    if (code == 0) {
+                        JSONObject responseObj = object.getJSONObject("response");
+                        String nationWideRanking = responseObj.getString("nationWideRanking");
+                        rankingMap.put("nationWideRanking",nationWideRanking);
+                        String interiorRanking = responseObj.getString("interiorRanking");
+                        rankingMap.put("interiorRanking",interiorRanking);
+                        String nationWideMonthRanking = responseObj.getString("nationWideMonthRanking");
+                        rankingMap.put("nationWideMonthRanking",nationWideMonthRanking);
+                        String interiorMonthRanking = responseObj.getString("interiorMonthRanking");
+                        rankingMap.put("interiorMonthRanking",interiorMonthRanking);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -631,15 +631,44 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
 
     @Override
-    public void onCkcekState(int state, boolean isScurress,String msg) {
+    public void onCkcekState(int state, boolean isScurress, String msg) {
         if (isScurress) {
             if (state == 1) {        //前门
                 SendUtil.openQian();
             } else {
                 SendUtil.openHou();
             }
-        }else {
+        } else {
             ToastUtil.showMessage(msg);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && requestCode == 121) {
+            //扫描蓝牙
+            ToastUtil.showMessage("请从新扫描气体检测仪");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MyApplication.closeSerialPort();
+        //停止wifi连接服务器的service
+        if (!TextUtils.isEmpty(mEquipmentNumber)) {
+            SocketManage.getSocketManage().disconnect(mEquipmentNumber);
+            if (StringUtils.isServiceRunning(this, "com.E8908.thread.WifiLinkService")) {
+                Intent serviceIntent = new Intent(this, WifiLinkService.class);
+                stopService(serviceIntent);
+            }
+        }
+        Intent bleIntent = new Intent(this, SendBleDataService.class);
+        stopService(bleIntent);
+        unregisterReceiver(mBleReceiver);
+        BluetoothAdapter defaultAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (defaultAdapter.isEnabled())
+            defaultAdapter.disable();
     }
 }

@@ -120,13 +120,4 @@ public class LinkSeverDialog extends Dialog {
         stopTask();
     }
 
-
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-        startTask();
-    }
 }

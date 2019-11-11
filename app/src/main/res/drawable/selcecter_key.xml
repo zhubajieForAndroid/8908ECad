@@ -3,6 +3,4 @@
     <item android:state_pressed="true" android:drawable="@drawable/select_key_shape_select" />
     <item android:state_selected="true" android:drawable="@drawable/select_key_shape_select" />
     <item android:drawable="@drawable/select_key_shape"/>
-
-
 </selector>

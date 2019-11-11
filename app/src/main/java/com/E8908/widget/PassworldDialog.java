@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.E8908.R;
 import com.E8908.base.MyApplication;
+import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.SendUtil;
 
 /**
@@ -26,6 +27,7 @@ public class PassworldDialog extends Dialog implements View.OnTouchListener {
     private EditText mPassworld;
     private AddWifiInfoListener mWifiInfoListener;
     private int mSecurity;
+    private Window mWindow;
 
     public PassworldDialog(Context context, int themeResId, String ssid,int security) {
         super(context, themeResId);
@@ -47,12 +49,13 @@ public class PassworldDialog extends Dialog implements View.OnTouchListener {
             mPassworld.setText("此WiFi无需密码");
             mPassworld.setFocusable(false);
         }
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams wlp = window.getAttributes();
+        mWindow = getWindow();
+
+        if (mWindow != null) {
+            WindowManager.LayoutParams wlp = mWindow.getAttributes();
             wlp.gravity = Gravity.CENTER;
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            window.setAttributes(wlp);
+            mWindow.setAttributes(wlp);
         }
     }
 
@@ -89,4 +92,6 @@ public class PassworldDialog extends Dialog implements View.OnTouchListener {
     public void setWifiInfoListener(AddWifiInfoListener l) {
         mWifiInfoListener = l;
     }
+
+
 }

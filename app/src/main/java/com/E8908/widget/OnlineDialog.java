@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,6 +22,7 @@ import com.E8908.activity.SystemSettingsActivity;
 import com.E8908.bean.EquipmentOnlineBean;
 import com.E8908.conf.Constants;
 import com.E8908.conf.Protocol;
+import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.SendUtil;
 import com.google.gson.Gson;
 
@@ -56,6 +58,7 @@ public class OnlineDialog extends Dialog implements View.OnTouchListener {
     private String mEquipmentID;
     private OnEquipmentIDlistener mOnEquipmentIDlistener;
     private String mSimText;
+    private Window mWindow;
 
     public OnlineDialog(Context context, int themeResId) {
         super(context, themeResId);
@@ -75,12 +78,12 @@ public class OnlineDialog extends Dialog implements View.OnTouchListener {
         ImageView iv = (ImageView) findViewById(R.id.dialog_bg_image);
         iv.setImageResource(imageRes);
         iv.setOnTouchListener(this);
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams wlp = window.getAttributes();
+        mWindow = getWindow();
+        if (mWindow != null) {
+            WindowManager.LayoutParams wlp = mWindow.getAttributes();
             wlp.gravity = Gravity.CENTER;
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            window.setAttributes(wlp);
+            mWindow.setAttributes(wlp);
         }
     }
 
@@ -235,7 +238,6 @@ public class OnlineDialog extends Dialog implements View.OnTouchListener {
                         Toast.makeText(mActivity, "网络异常,上线失败", Toast.LENGTH_SHORT).show();
                     }
                 });
-
             }
 
             @Override

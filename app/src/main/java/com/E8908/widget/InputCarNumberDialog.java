@@ -265,11 +265,5 @@ public class InputCarNumberDialog extends Dialog implements View.OnTouchListener
         mOnStartActivityListener = onStartActivityListener;
     }
 
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

@@ -80,6 +80,8 @@ public class StartAppTwoActivity extends BaseToolBarActivity implements View.OnC
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);//wifi状态，是否连上，密码
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);//网络状态变化
         registerReceiver(mReceiver, filter);
+
+
         initData();
         initListener();
     }

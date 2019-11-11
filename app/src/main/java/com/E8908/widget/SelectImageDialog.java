@@ -54,13 +54,7 @@ public class SelectImageDialog extends Dialog implements View.OnTouchListener {
         }
         return false;
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 
     public interface OnSelectCameraBtnListener {
         void onSelectCamera();

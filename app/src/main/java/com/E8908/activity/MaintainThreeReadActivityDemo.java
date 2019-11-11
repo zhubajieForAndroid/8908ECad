@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -42,9 +43,11 @@ import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.gson.Gson;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +93,8 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     CheckBox mBleRadio;
     @Bind(R.id.progress_bar)
     LinearLayout mProgressBar;
+    @Bind(R.id.bleid)
+    TextView mBleid;
     private boolean mIsRoutine;
     private boolean mIsYesData = false;
     private String mEquipmentId;
@@ -111,6 +116,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     private boolean isLoadData = true;
     private CheckBox mJumpBox;
     private SharedPreferences mJumpStateInfo;
+    private boolean mIsBleLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +130,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         mProgressDialog.setCanceledOnTouchOutside(false);
         mBleDevices = new ArrayList<>();
         mCarNumbers = new ArrayList<>();
+
         initData();
     }
 
@@ -148,9 +155,10 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
 
         mDeviceInfoSp = getSharedPreferences("BledeviceInfo", 0);
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Constants.ACTIVITY_STATE);
-        registerReceiver(receiver, intentFilter);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.BLE_DATA);              //蓝牙数据
+        filter.addAction(Constants.ACTIVITY_STATE);
+        registerReceiver(mBleReceiver, filter);
 
         //跳过第一,二步骤
         findViewById(R.id.jump_container).setOnClickListener(this);
@@ -164,10 +172,22 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         initBlue();
     }
 
-    BroadcastReceiver receiver = new BroadcastReceiver() {
+    private BroadcastReceiver mBleReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            finish();
+            String action = intent.getAction();
+            if (Constants.BLE_DATA.equals(action)) {
+                boolean isLinkBle = intent.getBooleanExtra("isLinkBle", false);
+                if (isLinkBle) {
+                    String bleID = intent.getStringExtra("bleID");
+                    mBleid.setText("已连接气体检测仪ID:" + bleID);
+                    mIsBleLink = true;
+                } else {
+                    mIsBleLink = false;
+                }
+            } else if (Constants.ACTIVITY_STATE.equals(action)) {
+                finish();
+            }
         }
     };
 
@@ -194,32 +214,40 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         public void onResponse(Call call, Response response) throws IOException {
             boolean successful = response.isSuccessful();
             if (successful) {
-            String string = response.body().string();
-
+                String string = response.body().string();
                 if (!TextUtils.isEmpty(string) && !"".equals(string)) {
-                    Gson gson = new Gson();
-                    final YunInfoBean yunInfoBean = gson.fromJson(string, YunInfoBean.class);
-                    boolean success = yunInfoBean.isSuccess();
-                    if (success) {
-                        mCarNumbers.addAll(yunInfoBean.getObj());
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mProgressBar.setVisibility(View.GONE);
-                                mCarNumberAdapter.notifyDataSetChanged();
-                            }
-                        });
-                    } else {
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mProgressBar.setVisibility(View.GONE);
-                                ToastUtil.showMessage(yunInfoBean.getMsg());
-                            }
-                        });
+                    try {
+                        JSONObject jsonObject = new JSONObject(string);
+                        boolean success = jsonObject.getBoolean("success");
+                        if (success) {
+                            Gson gson = new Gson();
+                            final YunInfoBean yunInfoBean = gson.fromJson(string, YunInfoBean.class);
+                            if (yunInfoBean == null)
+                                return;
+                            mCarNumbers.addAll(yunInfoBean.getObj());
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mProgressBar.setVisibility(View.GONE);
+                                    mCarNumberAdapter.notifyDataSetChanged();
+                                }
+                            });
+                        } else {
+                            final String msg = jsonObject.getString("msg");
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mProgressBar.setVisibility(View.GONE);
+                                    ToastUtil.showMessage(msg);
+                                }
+                            });
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
+
                 }
-            }else {
+            } else {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -306,6 +334,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
 
         }
     };
+
     /**
      * 判断是否含有特殊字符
      *
@@ -318,6 +347,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         Matcher m = p.matcher(str);
         return m.find();
     }
+
     /**
      * 是否包含中文
      *
@@ -366,10 +396,15 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata, boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging) {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            } else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -448,7 +483,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
             //保存是否跳过第一二步骤的标记
             boolean checked = mJumpBox.isChecked();
             SharedPreferences.Editor edit = mJumpStateInfo.edit();
-            edit.putBoolean("isJump",checked);
+            edit.putBoolean("isJump", checked);
             edit.apply();
 
             //判断蓝牙和车牌号是否选中
@@ -468,6 +503,9 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
                         intent.putExtra("BleDeviceMac", mDeviceMac);
                     }
                 }
+            }
+            if (mIsBleLink) {
+                intent.putExtra("BleDeviceMac", mDeviceMac);
             }
             intent.putExtra("equipmentID", mEquipmentId);
             startActivity(intent);
@@ -507,7 +545,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(receiver);
+        unregisterReceiver(mBleReceiver);
     }
 
     @Override
@@ -529,9 +567,9 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
                 }
                 break;
             case R.id.jump_container:       //是否跳过第一二步骤
-                if (mJumpBox.isChecked()){
+                if (mJumpBox.isChecked()) {
                     mJumpBox.setChecked(false);
-                }else {
+                } else {
                     mJumpBox.setChecked(true);
                 }
                 break;

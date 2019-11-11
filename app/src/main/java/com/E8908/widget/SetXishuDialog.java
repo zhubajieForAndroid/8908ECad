@@ -72,11 +72,5 @@ public class SetXishuDialog extends Dialog implements View.OnClickListener {
     public void setOnSendOpenListener(OnSendOpenListener onSendOpenListener) {
         mOnSendOpenListener = onSendOpenListener;
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

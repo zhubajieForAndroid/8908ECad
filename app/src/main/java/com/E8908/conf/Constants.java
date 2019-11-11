@@ -8,7 +8,7 @@ package com.E8908.conf;
 public class Constants {
     public static final String HOST = "https://www.haoanda.cn";
     public static final String LOCAL = "https://www.haoanda.cn";//"http://192.168.2.119:8080";
-    public static final String YUN_HOST = "https://cykj.wlyinfo.com/base-api";//https://cykj.wlyinfo.com/base-api
+    public static final String YUN_HOST = "https://cykj.wlyinfo.com/base-api-miniprogram";
     public static final String DATA = "sockData";
     public static final String BLE_DATA = "ble_data";           //蓝牙数据
     public static final String PUSH_URL = "pushUrl";
@@ -58,9 +58,9 @@ public class Constants {
         //删除已有设备
         public static final String DELETE_EQUIPMENT = HOST + "/weixin/manage/cancelAllocation";
         //激活的ID根据id(公司标记)取激活二维码
-        public static final String ID = "014";
+        public static final String ID = "021";
         //请求设备排名数据
-        public static final String EQUIPMENT_RANK_DATA = HOST + "/weixin/manage/getRankingOf8908E";
+        public static final String EQUIPMENT_RANK_DATA = HOST + "/weixin/manage/getRankingOf8908E2";
         //获取设备历史的加注量和常规深度的保养次数
         public static final String GET_EQUIPMENT_STORY = HOST + "/weixin/manage/getEquipmentDetail";
         //判断预约码是否正确
@@ -89,7 +89,10 @@ public class Constants {
         public static final String QUERY_START_STATE = LOCAL+"/weixin/equipmentApiService/queryCheckEquipmentStatus";
         //循环调用接口上传蓝牙检测到的数据
         public static final String UPDATE_BLE_GAS_DATA = LOCAL+"/weixin/cadGasCheckDataService/saveCadGasCheckData";
-        //根据车牌号查询云店信息
-        public static final String GET_INFO_BY_EQUIPMENT = YUN_HOST+"/appReceiveCar/findTodayReceiveCarByEquipmentId";
+        //根据车牌号查询云店信息,新版/base-api-miniprogram/miniprogram-MtsReceiveCar/findTodayReceiveCarByEquipmentId,旧版/appReceiveCar/findTodayReceiveCarByEquipmentId
+        public static final String GET_INFO_BY_EQUIPMENT = YUN_HOST+"/miniprogram-MtsReceiveCar/findTodayReceiveCarByEquipmentId";
+
+        //上传本次加注量
+        public static final String UPDATA_ADD_NUMBER = HOST +"/weixin/materielExpendRecordService/addMaterielExpendRecord";
     }
 }

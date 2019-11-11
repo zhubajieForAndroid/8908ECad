@@ -35,11 +35,5 @@ public class PushDialog extends Dialog {
         mWindow.setAttributes(attributes);
         Picasso.with(mContext).load(imageUrl).into(iv);
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

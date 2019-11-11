@@ -106,7 +106,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
         setContentView(R.layout.activity_system_settings);
         ButterKnife.bind(this);
         mStopDialog = new StopDialog(this, R.style.dialog);
-        mJuDialog = new JurisdictionDialog(this,R.style.dialog);
+        mJuDialog = new JurisdictionDialog(this, R.style.dialog);
         mJuDialog.setOnCheckJListener(this);
         initListener();
         initData();
@@ -149,10 +149,15 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata, boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging) {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            } else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -250,8 +255,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     ToastUtil.showMessage("设置版本成功");
                 } else {
                     currentState = 1;
-                    int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mResultInt ^ mVwesionToHardware ^ mDateYear ^ mDateMonth ^ mDateDay;
-                    int[] arr = {0x2a, 0x0a, 0x07, mResultInt, mVwesionToHardware, mDateYear, mDateMonth, mDateDay, resultXOR, 0x23};
+                    int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mVwesionToHardware ^ mResultInt ^ mDateYear ^ mDateMonth ^ mDateDay;
+                    int[] arr = {0x2a, 0x0a, 0x07, mVwesionToHardware, mResultInt, mDateYear, mDateMonth, mDateDay, resultXOR, 0x23};
                     SendUtil.sendMessage(arr, MyApplication.getOutputStream());
                 }
                 break;
@@ -261,8 +266,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     ToastUtil.showMessage("设置版本成功");
                 } else {
                     currentState = 2;
-                    int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mVwesionToSoftware ^ mResultInt ^ mDateYear ^ mDateMonth ^ mDateDay;
-                    int[] arr = {0x2a, 0x0a, 0x07, mVwesionToSoftware, mResultInt, mDateYear, mDateMonth, mDateDay, resultXOR, 0x23};
+                    int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mResultInt ^ mVwesionToSoftware ^ mDateYear ^ mDateMonth ^ mDateDay;
+                    int[] arr = {0x2a, 0x0a, 0x07, mResultInt, mVwesionToSoftware, mDateYear, mDateMonth, mDateDay, resultXOR, 0x23};
                     SendUtil.sendMessage(arr, MyApplication.getOutputStream());
                 }
                 break;
@@ -279,8 +284,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                         int yearInt = Integer.parseInt(year);
                         int monthInt = Integer.parseInt(month);
                         int dayInt = Integer.parseInt(day);
-                        int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mVwesionToHardware ^ mVwesionToSoftware ^ yearInt ^ monthInt ^ dayInt;
-                        int[] arr = {0x2a, 0x0a, 0x07, mVwesionToHardware, mVwesionToSoftware, yearInt, monthInt, dayInt, resultXOR, 0x23};
+                        int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mVwesionToSoftware ^ mVwesionToHardware ^ yearInt ^ monthInt ^ dayInt;
+                        int[] arr = {0x2a, 0x0a, 0x07, mVwesionToSoftware, mVwesionToHardware, yearInt, monthInt, dayInt, resultXOR, 0x23};
                         SendUtil.sendMessage(arr, MyApplication.getOutputStream());
                     }
                 }
@@ -344,7 +349,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                 break;
             case 10:
                 if (isSuccess) {
-                    if (isData){
+                    if (isData) {
                         currentState = 11;
                         //设置常规保养次数
                         SystemClock.sleep(100);
@@ -352,7 +357,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                             int i = Integer.parseInt(mRoutineResult, 16);
                             SendUtil.setRoutineNumber(i);
                         }
-                    }else {
+                    } else {
                         currentState = 0;
                         FileUtil.putSendState(true);
                         ToastUtil.showMessage("设置成功,重启生效");
@@ -458,8 +463,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                 int yearInt = Integer.parseInt(year);
                 int monthInt = Integer.parseInt(month);
                 int dayInt = Integer.parseInt(day);
-                int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mVwesionToHardware ^ mVwesionToSoftware ^ yearInt ^ monthInt ^ dayInt;
-                int[] arr = {0x2a, 0x0a, 0x07, mVwesionToHardware, mVwesionToSoftware, yearInt, monthInt, dayInt, resultXOR, 0x23};
+                int resultXOR = 0x2a ^ 0x0a ^ 0x07 ^ mVwesionToSoftware ^ mVwesionToHardware ^ yearInt ^ monthInt ^ dayInt;
+                int[] arr = {0x2a, 0x0a, 0x07, mVwesionToSoftware, mVwesionToHardware, yearInt, monthInt, dayInt, resultXOR, 0x23};
                 SendUtil.sendMessage(arr, MyApplication.getOutputStream());
             }
         });
@@ -507,46 +512,136 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
         float x = event.getX();
         float y = event.getY();
         if ((x >= 32 && x <= 1223) && (y >= 6 && y <= 56)) {                //电子秤校准
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,2);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                    mJuDialog.setEquipmentId(mEquipmentNumber, 2);
+                    mJuDialog.show();
+                } else {
+                    SendUtil.controlVoice();
+                    Intent intent = new Intent(this, CalibrationActivity.class);
+                    startActivity(intent);
+                }
             }
         } else if ((x >= 31 && x <= 1220) && (y >= 70 && y <= 120)) {         //设备上线
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,3);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                    mJuDialog.setEquipmentId(mEquipmentNumber, 3);
+                    mJuDialog.show();
+                } else {
+                    SendUtil.controlVoice();
+                    OnlineDialog dialog = new OnlineDialog(this, R.style.dialog);
+                    dialog.setBitmap(R.mipmap.popovers_onlin_1);
+                    dialog.show();
+                    dialog.setOnEquipmentIDlistener(new OnlineDialog.OnEquipmentIDlistener() {
+                        @Override
+                        public void idListener(String id) {
+                            if (!TextUtils.isEmpty(id) && id.length() == 8) {
+                                mList = DataUtil.stringToA(id);
+                                currentState = 4;
+                                SendUtil.setEquipentId(mList);
+                            }
+                        }
+                    });
+                }
+
             }
         } else if ((x >= 36 && x <= 1225) && (y >= 138 && y <= 190)) {         //WiFi
             SendUtil.controlVoice();
             Intent i = new Intent(this, WifiActivity.class);
             startActivity(i);
         } else if ((x >= 34 && x <= 1230) && (y >= 203 && y <= 254)) {         //硬件版本
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,4);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                    mJuDialog.setEquipmentId(mEquipmentNumber, 4);
+                    mJuDialog.show();
+                } else {
+                    SendUtil.controlVoice();
+                    mDialog.setBitmap(R.mipmap.popovers_3, true);
+                    mDialog.show();
+                }
+
             }
         } else if ((x >= 34 && x <= 1226) && (y >= 333 && y <= 387)) {         //主控版本
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,5);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                    mJuDialog.setEquipmentId(mEquipmentNumber, 5);
+                    mJuDialog.show();
+                } else {
+                    SendUtil.controlVoice();
+                    mDialog.setBitmap(R.mipmap.popovers_5, false);
+                    mDialog.show();
+                }
             }
         } else if ((x >= 33 && x <= 1230) && (y >= 400 && y <= 450)) {         //日期
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,6);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                    mJuDialog.setEquipmentId(mEquipmentNumber, 6);
+                    mJuDialog.show();
+                } else {
+                    SendUtil.controlVoice();
+                    mDateDialog.setBitmap(R.mipmap.popovers_8);
+                    mDateDialog.show();
+                }
             }
         } else if ((x >= 33 && x <= 1223) && (y >= 268 && y <= 322)) {         //回复出厂设置
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,7);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                    mJuDialog.setEquipmentId(mEquipmentNumber, 7);
+                    mJuDialog.show();
+                } else {
+                    final LoginDialog systemDialog = new LoginDialog(this, R.style.dialog, "");
+                    NavigationBarUtil.focusNotAle(systemDialog.getWindow());
+                    systemDialog.show();
+                    //显示虚拟栏的时候 隐藏
+                    NavigationBarUtil.hideNavigationBar(systemDialog.getWindow());
+                    //再清理失能焦点
+                    NavigationBarUtil.clearFocusNotAle(systemDialog.getWindow());
+                    systemDialog.setOnLoninnListener(new LoginDialog.OnLonInListener() {
+                        @Override
+                        public void loginListener(Boolean b) {
+                            if (b) {
+                                mStopDialog.setBitmap(R.mipmap.popovers_danger_1);
+                                mStopDialog.setOnMakeSuerListener(new StopDialog.OnMakeSuerListener() {
+                                    @Override
+                                    public void isMakeUser(boolean b) {
+                                        if (b) {
+                                            if (!"00000000".equals(mEquipmentNumber)) {
+                                                getEquipmentUser();
+                                            } else {
+                                                currentState = 5;
+                                                SendUtil.renewData();
+                                            }
+                                        }
+                                    }
+                                });
+
+                                mStopDialog.show();
+                            }
+                        }
+                    });
+                }
             }
         } else if ((x >= 35 && x <= 1227) && (y >= 466 && y <= 516)) {                             //设置ID号
-            if (!TextUtils.isEmpty(mEquipmentNumber)){
-                mJuDialog.setEquipmentId(mEquipmentNumber,8);
-                mJuDialog.show();
+            if (!TextUtils.isEmpty(mEquipmentNumber)) {
+                if (!"00000000".equals(mEquipmentNumber)) {
+                   /* mJuDialog.setEquipmentId(mEquipmentNumber, 8);
+                    mJuDialog.show();*/
+                    ToastUtil.showMessage("已经有ID号了");
+                } else {
+                    SetIDDialog d = new SetIDDialog(this, R.style.dialog);
+                    d.setBitmap(R.mipmap.popovers_7);
+                    d.show();
+                    d.setDateResultListener(new SetIDDialog.DateResultListener() {
+                        @Override
+                        public void dateResult(String date) {
+                            //请求旧ID号的历史记录
+                            loadDataForOldID(date);
+                        }
+                    });
+                }
             }
 
-        }else if ((x >= 33 && x <= 1227) && (y >= 533 && y <= 583)) {                             //关于设备
+        } else if ((x >= 33 && x <= 1227) && (y >= 533 && y <= 583)) {                             //关于设备
             SendUtil.controlVoice();
             Intent intent = new Intent(this, AboutEquipmentActivity.class);
             startActivity(intent);
@@ -574,6 +669,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     }
                 });
             }
+
             @Override
             public void parseData(Gson gson, String s) {
                 try {
@@ -595,7 +691,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                                 mAddTaotle = vehicleStatus.substring(0, 2) + jarInfo.substring(8);
                             }
                         }
-                    }else {
+                    } else {
                         isData = false;
                     }
                     SystemClock.sleep(1000);
@@ -632,6 +728,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     });
 
                 }
+
                 @Override
                 public void parseData(Gson gson, String s) {
                     try {
@@ -693,9 +790,9 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
 
 
     @Override
-    public void onCkcekState(int state, boolean isScurress,String msg) {
-        if (isScurress){
-            switch (state){
+    public void onCkcekState(int state, boolean isScurress, String msg) {
+        if (isScurress) {
+            switch (state) {
                 case 2:                     //电子秤校准
                     SendUtil.controlVoice();
                     Intent intent = new Intent(this, CalibrationActivity.class);
@@ -781,7 +878,7 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                     }
                     break;
             }
-        }else {
+        } else {
             ToastUtil.showMessage(msg);
         }
     }

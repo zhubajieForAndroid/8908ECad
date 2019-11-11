@@ -38,13 +38,7 @@ public class CompleteDialog extends Dialog implements View.OnTouchListener {
             mWindow.setAttributes(wlp);
         }
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {

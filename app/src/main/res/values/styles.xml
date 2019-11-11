@@ -8,6 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowFullscreen">true</item>
         <item name="windowNoTitle">true</item>
+
     </style>
     <style name="dialog" parent="@android:style/Theme.Dialog">
         <item name="android:windowFrame">@null</item><!--边框-->
@@ -30,6 +31,7 @@
     <style name="TabLayoutTextStyle">
         <item name="android:textSize">20sp</item>
     </style>
+
     <style name="tablayoutTextSize" parent="AppTheme">
         <item name="android:textSize">28sp</item>
         <item name="android:textColor">@android:color/white</item>

@@ -192,6 +192,14 @@
             android:theme="@android:style/Theme.Translucent"/>
         <activity android:name=".activity.UpgradeActivity" android:theme="@style/noAnimTheme">
         </activity>
+        <service android:name=".thread.WifiLinkService"/>
+        <!--百度定位-->
+        <service android:name="com.baidu.location.f" android:enabled="true" android:process=":remote"> </service>
+        <!--百度定位AK-->
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="zWc6oV95OICjLTi8XHfGNpG7yv9zNZ4n">
+        </meta-data>
     </application>
 
 </manifest>

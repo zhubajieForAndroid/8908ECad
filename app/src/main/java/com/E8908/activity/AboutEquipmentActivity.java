@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.E8908.R;
 import com.E8908.base.BaseActivity;
@@ -29,11 +30,14 @@ import com.E8908.util.SendUtil;
 import com.E8908.widget.BitmapUtil;
 import com.E8908.widget.ServiceIpDialog;
 import com.E8908.widget.ToastUtil;
+import com.kernal.smartvision.ocr.SettingActivity;
 import com.tencent.bugly.beta.Beta;
 import com.tencent.bugly.beta.UpgradeInfo;
 import com.tencent.bugly.beta.download.DownloadListener;
 import com.tencent.bugly.beta.download.DownloadTask;
 import com.tencent.bugly.beta.upgrade.UpgradeListener;
+
+import java.util.Arrays;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -178,7 +182,11 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
         if (size == 25) {                            //查询服务器的IP地址
             String serviceIp = DataUtil.getServiceIp(buffer);
             if (!TextUtils.isEmpty(serviceIp)) {
-                mServiceIp.setText(serviceIp);
+                if (serviceIp.contains(".")) {
+                    mServiceIp.setText(serviceIp);
+                }else {
+                    mServiceIp.setText("000.000.000.000");
+                }
             }
         }
     }
@@ -218,10 +226,15 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata) {
+    protected void isYesData(boolean isdata,boolean isCharging) {
         if (isdata && mIsYesData) {        //成功
-            mMessageState.setText("正常");
-            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            if (isCharging){
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
+            }else {
+                mMessageState.setText("正常");
+                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
+            }
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -240,6 +253,7 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
         String equipmentNumber = DataUtil.getEquipmentNumber(buffer);       //获取序列号
         int vwesionToHardware = DataUtil.getVwesionToHardware(buffer);      //获取硬件版本
         int vwesionToSoftware = DataUtil.getVwesionToSoftware(buffer);      //获取主控版本
+        Log.d(TAG, "analysisData: 硬件版本="+vwesionToHardware+"  主控版本="+vwesionToSoftware);
         int dateYear = DataUtil.getDateYear(buffer);                             //获取出厂日期年
         int dateMonth = DataUtil.getDateMonth(buffer);                             //获取出厂日期月
         int dateDay = DataUtil.getDateDay(buffer);                             //获取出厂日期日
@@ -332,7 +346,12 @@ public class AboutEquipmentActivity extends BaseActivity implements View.OnClick
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.about_system_cheack_update:               //检查更新
-                Beta.checkUpgrade();
+                DownloadTask strategyTask = Beta.getStrategyTask();
+                if (strategyTask == null || strategyTask.getStatus() != DownloadTask.DOWNLOADING){
+                    Beta.checkUpgrade();
+                }else {
+                    ToastUtil.showMessage("已经在更新中");
+                }
                 break;
             case R.id.about_system_back:
                 SendUtil.controlVoice();

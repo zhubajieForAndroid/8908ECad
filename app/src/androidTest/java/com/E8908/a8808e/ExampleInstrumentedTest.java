@@ -3,10 +3,12 @@ package com.E8908.a8808e;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static android.support.constraint.Constraints.TAG;
 import static org.junit.Assert.*;
 
 /**
@@ -18,10 +20,8 @@ import static org.junit.Assert.*;
 public class ExampleInstrumentedTest {
     @Test
     public void useAppContext() throws Exception {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
-
-        assertEquals("com.cad.a8808e", appContext.getPackageName());
+        int i = Integer.parseInt("0", 16);
+        Log.d(TAG, "useAppContext: "+i);
     }
 
 }

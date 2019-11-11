@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:background="#172E3B">
     <ImageView
         android:id="@+id/toobar_bg_image"
@@ -12,193 +12,73 @@
         android:id="@+id/topbarView"
         layout="@layout/topbar_layout"/>
     <LinearLayout
-        android:layout_below="@id/toobar_bg_image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@id/toobar_bg_image">
         <LinearLayout
-            android:layout_gravity="center"
-            android:orientation="vertical"
             android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:layout_weight="1"
-            android:layout_height="match_parent">
+            android:orientation="vertical">
             <RelativeLayout
-                android:layout_marginTop="30dp"
-                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_marginTop="30dp"
+                android:layout_weight="1"
+                android:gravity="center">
                 <android.support.design.widget.TabLayout
                     android:id="@+id/tab"
-                    app:tabTextColor="@color/mycolor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
                     app:tabIndicatorHeight="4dp"
                     app:tabTextAppearance="@style/TabLayoutTextStyle"
-                    android:layout_marginBottom="2dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-               <android.support.v4.view.ViewPager
-                   android:layout_below="@id/tab"
-                   android:layout_marginRight="30dp"
-                   android:layout_marginLeft="30dp"
-                   android:id="@+id/home_viewpager"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"/>
+                    app:tabTextColor="@color/mycolor"/>
+                <android.support.v4.view.ViewPager
+                    android:id="@+id/home_viewpager"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tab"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"/>
 
 
             </RelativeLayout>
             <!--工作信息  android:background="@drawable/background_shape"-->
             <LinearLayout
-                android:gravity="center"
-                android:layout_marginRight="@dimen/x50"
-                android:layout_marginLeft="@dimen/x50"
-                android:orientation="vertical"
                 android:id="@+id/tab_Relativelayout_message"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1">
-                <LinearLayout
+                android:layout_marginLeft="@dimen/x50"
+                android:layout_marginRight="@dimen/x50"
+                android:layout_marginBottom="30dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <android.support.design.widget.TabLayout
+                    android:id="@+id/tab_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tabIndicatorColor="@android:color/transparent"
+                    app:tabSelectedTextColor="@color/common_blue_0090FF"
+                    app:tabTextAppearance="@style/TabLayoutTextStyle"
+                    app:tabTextColor="@android:color/white"/>
+                <android.support.v4.view.ViewPager
                     android:paddingLeft="@dimen/x26"
                     android:paddingRight="@dimen/x26"
-                    android:orientation="vertical"
                     android:background="@drawable/background_shape"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <RelativeLayout
-                        android:layout_marginTop="5dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:textStyle="bold"
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/y15"
-                            android:text="设备序列号"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:id="@+id/eqeuipment_id"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:text="00000000"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                    </RelativeLayout>
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/y15"
-                            android:text="药液桶剩余"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:id="@+id/surplus_oil"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:text="0ML"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                    </RelativeLayout>
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/y15"
-                            android:text="工作次数全国排名"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:id="@+id/work_ranking"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:text="0"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                    </RelativeLayout>
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/y15"
-                            android:text="单月次数全国排名"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:id="@+id/work_ranking_month"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:text="0"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                    </RelativeLayout>
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/y15"
-                            android:text="工作次数内部排名"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:id="@+id/work_in_ranking"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:text="0"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                    </RelativeLayout>
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/y20"
-                            android:text="单月次数内部排名"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                        <TextView
-                            android:layout_centerVertical="true"
-                            android:id="@+id/work_in_ranking_month"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentRight="true"
-                            android:text="0"
-                            android:textColor="#ffffff"
-                            android:textSize="24px"/>
-                    </RelativeLayout>
-                </LinearLayout>
+                    android:id="@+id/view_pager"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1.2"
-            android:orientation="vertical"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content">
+            android:orientation="vertical">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -206,9 +86,9 @@
                 <LinearLayout
                     android:id="@+id/tab_linearlayout_routine"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/x50"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <ImageView
                         android:layout_width="wrap_content"
@@ -228,9 +108,9 @@
                 <LinearLayout
                     android:id="@+id/tab_linearlayout_depth"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/x50"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <ImageView
                         android:layout_width="wrap_content"
@@ -249,9 +129,9 @@
                 <LinearLayout
                     android:id="@+id/tab_linearlayout_infusion_solution"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/x50"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <ImageView
                         android:layout_width="wrap_content"
@@ -269,16 +149,16 @@
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout
-                android:layout_marginTop="@dimen/y80"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/y80">
 
                 <!--工作统计-->
                 <LinearLayout
                     android:id="@+id/tab_linearlayout_work_statistics"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <ImageView
                         android:layout_width="wrap_content"
@@ -297,8 +177,8 @@
                 <LinearLayout
                     android:id="@+id/tag_lineatrlayout_system_setup"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <ImageView
                         android:layout_width="wrap_content"
@@ -317,8 +197,8 @@
                 <LinearLayout
                     android:id="@+id/about_equipment"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:orientation="vertical">
                     <ImageView
                         android:layout_width="wrap_content"

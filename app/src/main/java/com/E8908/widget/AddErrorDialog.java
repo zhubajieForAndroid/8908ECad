@@ -62,11 +62,5 @@ public class AddErrorDialog extends Dialog implements View.OnTouchListener {
     public void setMakeSuperListener(MakeSuperListener m){
         mMakeSuperListener = m;
     }
-    @Override
-    public void show() {
-        NavigationBarUtil.focusNotAle(mWindow);
-        super.show();
-        NavigationBarUtil.hideNavigationBar(mWindow);
-        NavigationBarUtil.clearFocusNotAle(mWindow);
-    }
+
 }

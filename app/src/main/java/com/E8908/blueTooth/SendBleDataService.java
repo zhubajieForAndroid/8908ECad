@@ -4,7 +4,10 @@ import android.app.Service;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.Parcelable;
@@ -22,6 +25,7 @@ import com.E8908.conf.Constants;
 import com.E8908.util.IoUtils;
 import com.E8908.util.NavigationBarUtil;
 import com.E8908.util.OkhttpManager;
+import com.E8908.util.SharedPreferencesUtils;
 import com.E8908.widget.ToastUtil;
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
@@ -64,6 +68,7 @@ public class SendBleDataService extends Service {
     private String mShopName;
     private String mCarNumber;
     private SharedPreferences mBleIdSp;
+    private MySendTask mMySendTask;
 
     @Nullable
     @Override
@@ -74,7 +79,6 @@ public class SendBleDataService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        mTimer = new Timer();
         mBleManager = BleManager.getInstance();
         mPames = new HashMap<>();
         mOkhttpManager = OkhttpManager.getOkhttpManager();
@@ -84,14 +88,19 @@ public class SendBleDataService extends Service {
         //保存蓝牙ID
         mBleIdSp = getSharedPreferences("BledeviceInfo",0);
 
+        //取出保存的pk
+        SharedPreferences bleUpdataPkSp = SharedPreferencesUtils.getBleUpdataPkSp();
+        mPk = bleUpdataPkSp.getString("upPk",null);
+
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mPk = intent.getStringExtra("pk");
-        mShopName = intent.getStringExtra("shopName");
-        mCarNumber = intent.getStringExtra("carNumber");
-        mDeviceMac = intent.getStringExtra("BleDeviceMac");
+        if (intent != null) {
+            mShopName = intent.getStringExtra("shopName");
+            mCarNumber = intent.getStringExtra("carNumber");
+            mDeviceMac = intent.getStringExtra("BleDeviceMac");
+        }
         if (!TextUtils.isEmpty(mDeviceMac))
             mBleManager.connect(mDeviceMac, mBleGattCallback);
         return super.onStartCommand(intent, flags, startId);
@@ -108,6 +117,11 @@ public class SendBleDataService extends Service {
         public void onConnectFail(BleDevice bleDevice, BleException exception) {
             //连接失败
             Log.d(TAG, "onStartConnect: 连接失败");
+            Intent intent = new Intent();
+            intent.setAction(Constants.BLE_DATA);
+            intent.putExtra("data", new byte[]{});
+            intent.putExtra("isLinkBle", false);
+            sendBroadcast(intent);
         }
 
         @Override
@@ -128,6 +142,12 @@ public class SendBleDataService extends Service {
             mBleManager.notify(bleDevice, mUuid_service, mUuid_chara, false, mBleNotifyCallback);
             Log.d(TAG, "onConnectSuccess: 连接成功");
 
+            Intent intent = new Intent();
+            intent.setAction(Constants.BLE_DATA);
+            intent.putExtra("data", new byte[]{});
+            intent.putExtra("isLinkBle", true);
+            sendBroadcast(intent);
+
         }
 
         @Override
@@ -139,18 +159,23 @@ public class SendBleDataService extends Service {
             } else {                //被动断开连接之后,从新链接
                 //休眠一段时间在进行重连
                 SystemClock.sleep(100);
-                mBleManager.connect(mDeviceMac, mBleGattCallback);
+                mBleManager.connect(mDeviceMac, this);
             }
+
         }
     };
 
 
     private void initSendTask() {
-        if (mTimer != null) {
-            mTimer.schedule(new MySendTask(), 0, 1000);
+        if (mTimer == null){
+            mTimer = new Timer();
+        }
+        if (mMySendTask == null){
+            mMySendTask = new MySendTask();
+            mTimer.schedule(mMySendTask, 0, 1000);
         }
     }
-
+   
     private class MySendTask extends TimerTask {
         @Override
         public void run() {
@@ -163,7 +188,6 @@ public class SendBleDataService extends Service {
         public void onNotifySuccess() {
             //读取蓝牙ID
             SendBleUtils.readBleID(mBleManager, mDevice, mUuid_service, mUuid_chara, mBleWriteCallback);
-
         }
 
         @Override
@@ -193,7 +217,8 @@ public class SendBleDataService extends Service {
                     Intent intent = new Intent();
                     intent.setAction(Constants.BLE_DATA);
                     intent.putExtra("data", resole);
-                    intent.putExtra("dataSize", resole.length);
+                    intent.putExtra("isLinkBle", true);
+                    intent.putExtra("bleID", mEquipmentID);
                     sendBroadcast(intent);
                     if (!TextUtils.isEmpty(mPk)) {          //pk不等于空才去上传数据
                         //上传数据
@@ -283,5 +308,7 @@ public class SendBleDataService extends Service {
         }
         mBleManager.disconnect(mDevice);
         mBleManager.destroy();
+        mBleManager.disconnectAllDevice();
+
     }
 }

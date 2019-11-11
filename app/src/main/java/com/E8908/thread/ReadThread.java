@@ -1,11 +1,14 @@
 package com.E8908.thread;
 
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
 import com.E8908.base.MyApplication;
 import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
+import com.E8908.util.SendUtil;
+import com.E8908.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,30 +23,35 @@ import static android.support.constraint.Constraints.TAG;
 public class ReadThread extends Thread {
     private int mIndex;
     private InputStream mInputStream;
+    private Context mContext = MyApplication.getContext();
+    private boolean mIsStop;            //是否停止线程
 
-    public void setInputStream(InputStream inputStream) {
+    public void setInputStream(InputStream inputStream, boolean isStop) {
         mInputStream = inputStream;
+        mIsStop = isStop;
     }
 
 
     @Override
     public void run() {
-        DataUtil.testDate();//获取网络时间
-        while (!isInterrupted()) {
+        while (mIsStop) {
             try {
                 byte[] resole = resole(mInputStream);
-                if (resole.length != 1) {
+                if (resole.length != 1 && resole.length != 2 && resole.length != 3) {
                     // 一个完整包即产生
                     Intent intent = new Intent();
                     intent.setAction(Constants.DATA);
                     intent.putExtra("response", resole);
                     intent.putExtra("size", resole.length);
-                    MyApplication.getContext().sendBroadcast(intent);
+                    mContext.sendBroadcast(intent);
+                    if (!StringUtils.isServiceRunning(mContext, "com.E8908.thread.WifiLinkService")) {
+                        Intent serviceIntent = new Intent(mContext, WifiLinkService.class);
+                        mContext.startService(serviceIntent);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -80,10 +88,10 @@ public class ReadThread extends Thread {
             if (mIndex == dataLength) { // 当前长度等于命令长度时结束。并校验结束位是否为23,不等于23则标记返回命令异常
                 if (i != 35) valid = 2; // 不是以23结尾
                 break;
-            }else {
-               if (mIndex > Constants.DATA_LONG){
-                   break;
-               }
+            } else {
+                if (mIndex > Constants.DATA_LONG) {
+                    break;
+                }
             }
         }
         if (mIndex != dataLength) valid = 3; // 接收长度错误
@@ -98,4 +106,6 @@ public class ReadThread extends Thread {
         }
         return result;
     }
+
+
 }

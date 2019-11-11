@@ -4,10 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -20,6 +22,7 @@ import android.view.WindowManager;
 import com.E8908.R;
 import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
+import com.E8908.util.SharedPreferencesUtils;
 import com.E8908.widget.PushDialog;
 import com.E8908.widget.ToastUtil;
 
@@ -35,12 +38,15 @@ public abstract class BaseActivity extends AppCompatActivity {
     private BroadcastReceiver mPushUrlBroadcastReceiver;
     private boolean pushIsInit;                 //是否设置别名
     private String mEquipmentNumber;
+    private boolean mIsCharging;
+    private boolean mMode = true;
+    private SharedPreferences mStateSp;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getRequestedOrientation()!=ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE){
+        if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
 
@@ -48,6 +54,10 @@ public abstract class BaseActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (mPushdialog == null)
             mPushdialog = new PushDialog(this, R.style.dialog);
+
+        mStateSp = SharedPreferencesUtils.getCommunicationStateSp();
+
+
     }
 
 
@@ -56,6 +66,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         @Override
         public void onReceive(final Context context, Intent intent) {
             String action = intent.getAction();
+            Log.d(TAG, "onReceive: "+action);
             if (action != null) {
                 if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
                     Parcelable parcelableExtra = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
@@ -72,11 +83,23 @@ public abstract class BaseActivity extends AppCompatActivity {
                             isWifiConnected(false, 1);
                         }
                     }
+                } else if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {        //系统电量
+                    int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+                    mIsCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+                }else if (action.equals("tyzc.SHOW")){
+                    mMode = intent.getBooleanExtra("mode", false);
+                    if (mMode){
+                        Intent mintent = new Intent("tyzc.SHOW");
+                        mintent.putExtra("mode",false);
+                        sendBroadcast(mintent);
+                    }
                 }
             }
         }
 
     };
+
+
 
     protected abstract void isWifiConnected(boolean b, int level);
 
@@ -85,6 +108,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);//wifi状态，是否连上，密码
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);//网络状态变化
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);        //系统电量
+        filter.addAction("tyzc.SHOW");//导航条
         registerReceiver(mReceiver, filter);
     }
 
@@ -117,12 +142,17 @@ public abstract class BaseActivity extends AppCompatActivity {
         public void run() {
             super.run();
             MyApplication.getmHandler().postDelayed(this, 3000);
-            isYesData(isYesData);
+            //保存通讯状态
+            SharedPreferences.Editor edit = mStateSp.edit();
+            edit.putBoolean("dataState",isYesData);
+            edit.apply();
+
+            isYesData(isYesData,mIsCharging);
             isYesData = false;
         }
     };
 
-    protected abstract void isYesData(boolean isdata);
+    protected abstract void isYesData(boolean isdata,boolean isCharging);
 
     public abstract void onDataReceived(byte[] buffer, int size);
 
@@ -169,11 +199,13 @@ public abstract class BaseActivity extends AppCompatActivity {
         unregisterReceiver(mReceiver);
         MyApplication.getmHandler().removeCallbacks(myRunnable);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
         hintWindow();
     }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -181,6 +213,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             hintWindow();
         }
     }
+
     private void hintWindow() {
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(

@@ -10,11 +10,14 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.E8908.R;
+import com.E8908.util.NavigationBarUtil;
 
 public class SelectBeforeAndAfterDialog extends Dialog implements View.OnTouchListener {
     private static final String TAG = "InputCarNumberHinDialog";
     private OnMakeSureBtnClickListener mOnMakeSureBtnClickListener;
     private Context mContext;
+    private Window mWindow;
+
     public SelectBeforeAndAfterDialog(Context context, int themeResId) {
         super(context, themeResId);
         mContext = context;
@@ -25,12 +28,12 @@ public class SelectBeforeAndAfterDialog extends Dialog implements View.OnTouchLi
         ImageView iv = findViewById(R.id.top_bg);
         iv.setImageResource(res);
         iv.setOnTouchListener(this);
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams wlp = window.getAttributes();
+        mWindow = getWindow();
+        if (mWindow != null) {
+            WindowManager.LayoutParams wlp = mWindow.getAttributes();
             wlp.gravity = Gravity.CENTER;
             wlp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            window.setAttributes(wlp);
+            mWindow.setAttributes(wlp);
         }
     }
 
@@ -53,4 +56,5 @@ public class SelectBeforeAndAfterDialog extends Dialog implements View.OnTouchLi
     public void setOnMakeSureBtnClickListener(OnMakeSureBtnClickListener onMakeSureBtnClickListener) {
         mOnMakeSureBtnClickListener = onMakeSureBtnClickListener;
     }
+
 }

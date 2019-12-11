@@ -78,4 +78,10 @@ public class SharedPreferencesUtils {
     public static SharedPreferences getAddNumbersAndAddTimeSp(){
         return MyApplication.getContext().getSharedPreferences("numberAndTime",0);
     }
+    /**
+     * 获取保存工作完成时的次数
+     */
+    public static SharedPreferences getWorkCount(){
+        return  MyApplication.getContext().getSharedPreferences("completeWorkCount",0);
+    }
 }

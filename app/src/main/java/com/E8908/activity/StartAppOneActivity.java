@@ -14,7 +14,6 @@ import butterknife.ButterKnife;
 
 public class StartAppOneActivity extends BaseToolBarActivity implements View.OnClickListener {
 
-
     @Bind(R.id.in_home)
     ImageView mInHome;
 
@@ -25,6 +24,13 @@ public class StartAppOneActivity extends BaseToolBarActivity implements View.OnC
         setContentView(R.layout.activity_start_app_one);
         ButterKnife.bind(this);
         initData();
+    }
+
+
+
+    @Override
+    protected void isYesData(boolean isdata) {
+
     }
 
 

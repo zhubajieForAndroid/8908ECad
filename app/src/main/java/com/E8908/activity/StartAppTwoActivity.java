@@ -86,6 +86,13 @@ public class StartAppTwoActivity extends BaseToolBarActivity implements View.OnC
         initListener();
     }
 
+
+
+    @Override
+    protected void isYesData(boolean isdata) {
+
+    }
+
     private void initListener() {
         mAboutSystemBack.setOnClickListener(this);
         mWifiListview.setOnItemClickListener(this);

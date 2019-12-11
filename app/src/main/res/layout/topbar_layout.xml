@@ -3,10 +3,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
     <LinearLayout
-        android:layout_width="630dp"
+        android:id="@+id/ll"
+        android:paddingRight="30dp"
+        android:gravity="right"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="40dp"
         android:layout_marginTop="13dp"
         android:orientation="horizontal">
         <TextView
@@ -20,41 +21,62 @@
             android:layout_gravity="center_vertical"
             android:textColor="#fd0fc602"/>
         <TextView
+            android:gravity="center"
+            android:layout_marginLeft="36dp"
             android:id="@+id/message_state"
-            android:layout_marginLeft="50dp"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="center"
             android:text="正常"
             android:textColor="#fd0fc602"/>
         <ImageView
+            android:layout_gravity="center"
+            android:layout_marginLeft="60dp"
             android:id="@+id/tab_image_back_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="75dp"
             android:src="@mipmap/icon_on"/>
         <ImageView
+            android:layout_gravity="center"
+            android:layout_marginLeft="75dp"
             android:id="@+id/tab_image_front_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="82dp"
             android:src="@mipmap/icon_off"/>
         <ImageView
+            android:layout_gravity="center"
+            android:layout_marginLeft="65dp"
             android:id="@+id/tab_image_communication_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="82dp"
             android:src="@mipmap/top_icon_4_off"/>
         <ImageView
+            android:layout_gravity="center"
+            android:layout_marginLeft="57dp"
             android:id="@+id/tab_image_wifi"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="76dp"
             android:src="@mipmap/top_wifi_off"/>
-
+        <ImageView
+            android:layout_marginLeft="45dp"
+            android:layout_gravity="center"
+            android:id="@+id/battery_state"
+            android:layout_width="60dp"
+            android:layout_height="25dp"
+            android:src="@mipmap/battery_icon_100_white"/>
     </LinearLayout>
-
+    <TextView
+        android:layout_marginTop="2dp"
+        android:textColor="@color/white"
+        android:id="@+id/battery_num"
+        android:layout_marginEnd="11dp"
+        android:layout_below="@id/ll"
+        android:layout_alignParentRight="true"
+        android:textSize="22sp"
+        android:text="100%"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </RelativeLayout>

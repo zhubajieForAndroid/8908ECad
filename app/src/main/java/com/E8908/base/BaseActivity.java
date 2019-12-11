@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.E8908.R;
 import com.E8908.conf.Constants;
@@ -49,9 +50,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
-
-        //屏幕常亮
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (mPushdialog == null)
             mPushdialog = new PushDialog(this, R.style.dialog);
 
@@ -66,7 +64,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         @Override
         public void onReceive(final Context context, Intent intent) {
             String action = intent.getAction();
-            Log.d(TAG, "onReceive: "+action);
             if (action != null) {
                 if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
                     Parcelable parcelableExtra = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
@@ -86,6 +83,17 @@ public abstract class BaseActivity extends AppCompatActivity {
                 } else if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {        //系统电量
                     int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
                     mIsCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+                    Bundle extras = intent.getExtras();
+                    if (extras != null) {
+                        int current = extras.getInt("level");// 获得当前电量
+                        int total = extras.getInt("scale");// 获得总电量
+                        int percent = current * 100 / total;
+                        TextView textView = findViewById(R.id.battery_num);
+                        if (textView != null){
+                            textView.setText(percent+"%");
+                        }
+                        electricInfo(percent, mIsCharging);
+                    }
                 }else if (action.equals("tyzc.SHOW")){
                     mMode = intent.getBooleanExtra("mode", false);
                     if (mMode){
@@ -99,6 +107,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     };
 
+    protected abstract void electricInfo(int percent, boolean isCharging);
 
 
     protected abstract void isWifiConnected(boolean b, int level);
@@ -147,15 +156,29 @@ public abstract class BaseActivity extends AppCompatActivity {
             edit.putBoolean("dataState",isYesData);
             edit.apply();
 
-            isYesData(isYesData,mIsCharging);
+            //动态改变屏幕状态
+            changeScreenFlags();
+
+            isYesData(isYesData);
             isYesData = false;
         }
     };
 
-    protected abstract void isYesData(boolean isdata,boolean isCharging);
+    protected abstract void isYesData(boolean isdata);
 
     public abstract void onDataReceived(byte[] buffer, int size);
-
+    /**
+     * 改变屏幕亮度标记
+     */
+    private void changeScreenFlags() {
+        if (isYesData){
+            //屏幕常亮
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }else {
+            //取消常亮
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
     /**
      * 注册监听push广播
      */
@@ -176,15 +199,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        /*if (!pushIsInit) {
-            JPushInterface.setAlias(this, mEquipmentNumber, new TagAliasCallback() {
-                @Override
-                public void gotResult(int i, String s, Set<String> set) {
-                    pushIsInit = true;
-                }
-            });
-        }*/
-
         regWifi();
         regBroadcast();//注册串口通讯广播接受者
         MyApplication.getmHandler().postDelayed(myRunnable, 3000);

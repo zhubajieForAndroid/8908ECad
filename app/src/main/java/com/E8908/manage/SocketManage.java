@@ -3,6 +3,7 @@ package com.E8908.manage;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.E8908.factory.ThreadPoolProxyFactory;
 import com.E8908.util.DataUtil;
 import com.xuhao.didi.core.iocore.interfaces.IPulseSendable;
 import com.xuhao.didi.core.iocore.interfaces.ISendable;
@@ -20,9 +21,13 @@ import static android.support.constraint.Constraints.TAG;
 public class SocketManage {
     private IConnectionManager mManager;
     private OnSocketLinkListener mOnSocketLinkListener;
+    private LinkServiceRunnable mLinkServiceRunnable;
+
     private SocketManage() {
     }
+
     private static SocketManage manage;
+
     public static SocketManage getSocketManage() {
         if (manage == null) {
             synchronized (SocketManage.class) {
@@ -68,7 +73,7 @@ public class SocketManage {
 
             @Override
             public void onSocketReadResponse(ConnectionInfo connectionInfo, String s, OriginalData originalData) {
-                mOnSocketLinkListener.socketReadResponse(connectionInfo,s,originalData);
+                mOnSocketLinkListener.socketReadResponse(connectionInfo, s, originalData);
             }
 
             @Override
@@ -83,17 +88,17 @@ public class SocketManage {
 
             @Override
             public void onSocketDisconnection(ConnectionInfo connectionInfo, String s, Exception e) {
-                mOnSocketLinkListener.onSocketDisconnection(connectionInfo,s,e);
+                mOnSocketLinkListener.onSocketDisconnection(connectionInfo, s, e);
             }
 
             @Override
             public void onSocketConnectionSuccess(ConnectionInfo connectionInfo, String s) {
-                mOnSocketLinkListener.onSocketConnectionSuccess(connectionInfo,s);
+                mOnSocketLinkListener.onSocketConnectionSuccess(connectionInfo, s);
             }
 
             @Override
             public void onSocketConnectionFailed(ConnectionInfo connectionInfo, String s, Exception e) {
-                mOnSocketLinkListener.onSocketConnectionFailed(connectionInfo,s,e);
+                mOnSocketLinkListener.onSocketConnectionFailed(connectionInfo, s, e);
             }
         });
         //设置接受服务器数据监听
@@ -108,21 +113,23 @@ public class SocketManage {
      */
     public void connect() {
         if (mManager != null && !mManager.isConnect()) {
-            mManager.connect();
+            if (mLinkServiceRunnable == null)
+                mLinkServiceRunnable = new LinkServiceRunnable();
+            ThreadPoolProxyFactory.getmThreadPoolProxy().submit(mLinkServiceRunnable);
         }
     }
+
     /**
      * 断开连接
      */
-    public void disconnect(String id){
+    public void disconnect(String id) {
         if (mManager != null && mManager.isConnect()) {
             try {
                 mManager.send(new TestSendData(DataUtil.getLogOutData(id)));
                 SystemClock.sleep(500);
                 mManager.disconnect();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-                Log.d(TAG, "disconnect: 退出数据出现异常");
             }
 
         }
@@ -131,9 +138,10 @@ public class SocketManage {
 
     /**
      * 发送数据
+     *
      * @param iSendable
      */
-    public void sendData(ISendable iSendable){
+    public void sendData(ISendable iSendable) {
         if (mManager != null && mManager.isConnect()) {
             mManager.send(iSendable);
         }
@@ -141,9 +149,10 @@ public class SocketManage {
 
     /**
      * 发送心跳
+     *
      * @param pulseSendable
      */
-    public void sendHeartbeat(IPulseSendable pulseSendable){
+    public void sendHeartbeat(IPulseSendable pulseSendable) {
         if (mManager != null && mManager.isConnect()) {
             PulseManager pulseManager = mManager.getPulseManager();
             pulseManager.setPulseSendable(pulseSendable);
@@ -152,21 +161,24 @@ public class SocketManage {
     }
 
 
-
     /**
      * 获取连接管理器
+     *
      * @return
      */
-    public IConnectionManager getConnectionManager(){
+    public IConnectionManager getConnectionManager() {
         return mManager;
     }
 
-    public interface OnSocketLinkListener{
+    public interface OnSocketLinkListener {
         void socketReadResponse(ConnectionInfo connectionInfo, String s, OriginalData originalData);
+
         //Socket连接状态由连接->断开回调
         void onSocketDisconnection(ConnectionInfo connectionInfo, String s, Exception e);
+
         //连接成功
         void onSocketConnectionSuccess(ConnectionInfo connectionInfo, String s);
+
         //连接失败
         void onSocketConnectionFailed(ConnectionInfo connectionInfo, String s, Exception e);
     }
@@ -177,13 +189,24 @@ public class SocketManage {
 
     /**
      * 是否连接服务器
+     *
      * @return
      */
-    public boolean isConnect(){
-        if (mManager != null){
+    public boolean isConnect() {
+        if (mManager != null) {
             return mManager.isConnect();
-        }else {
+        } else {
             return false;
+        }
+    }
+
+    /**
+     * socket连接服务器的线程
+     */
+    private class LinkServiceRunnable implements Runnable {
+        @Override
+        public void run() {
+            mManager.connect();
         }
     }
 

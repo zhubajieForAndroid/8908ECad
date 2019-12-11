@@ -6,8 +6,8 @@ android {
         applicationId "com.E8908"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 8
-        versionName '1.7'
+        versionCode 13
+        versionName '2.2'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         //Jpush,腾讯应用升级
         ndk {
@@ -68,6 +68,7 @@ dependencies {
     //腾讯软件升级
     implementation 'com.tencent.bugly:crashreport_upgrade:latest.release'
     implementation 'com.tencent.bugly:nativecrashreport:latest.release'
+
     //OKSocket
     api 'com.tonystark.android:socket:latest.release'
 }

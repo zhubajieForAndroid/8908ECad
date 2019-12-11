@@ -7,8 +7,8 @@ package com.E8908.conf;
 
 public class Constants {
     public static final String HOST = "https://www.haoanda.cn";
-    public static final String LOCAL = "https://www.haoanda.cn";//"http://192.168.2.119:8080";
-    public static final String YUN_HOST = "https://cykj.wlyinfo.com/base-api-miniprogram";
+    public static final String LOCAL = "https://www.haoanda.cn";//"http://192.168.2.119:8080"; https://www.haoanda.cn
+    public static final String YUN_HOST = "https://cykj.wlyinfo.com/base-api-miniprogram";//https://cykj.wlyinfo.com/base-api-miniprogram
     public static final String DATA = "sockData";
     public static final String BLE_DATA = "ble_data";           //蓝牙数据
     public static final String PUSH_URL = "pushUrl";

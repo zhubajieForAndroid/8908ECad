@@ -180,6 +180,7 @@
 
         <activity android:name=".activity.MaintainThreeReadActivityDemo"/>
         <activity android:name=".activity.ConventionalMaintenanceActivityDemo22"/>
+        <activity android:name=".activity.ConventionalMaintenanceActivityDemo4"/>
         <activity android:name=".activity.FillingThreeActivityDemo24"/>
         <activity android:name=".textFunction.TextFunctionActivity">
         </activity>

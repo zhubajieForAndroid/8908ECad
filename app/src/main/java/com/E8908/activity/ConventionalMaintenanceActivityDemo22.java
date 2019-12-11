@@ -70,6 +70,8 @@ import me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar;
  */
 public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implements View.OnClickListener, DialogInterface.OnDismissListener, BackErrorDialog.OnBackClickListener {
     private static final String TAG = "MaintenanceActivity";
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     @Bind(R.id.btn_start)
     ImageView mBtnStart;
     @Bind(R.id.btn_stop)
@@ -304,6 +306,25 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
         mBackErrorDialog.setOnBackClickListener(this);
         initListener();
         initData();
+    }
+
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
     }
 
 
@@ -1713,15 +1734,10 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata, boolean isCharging) {
+    protected void isYesData(boolean isdata) {
         if (isdata && isYesData) {        //成功
-            if (isCharging) {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
-            } else {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
-            }
+            mMessageState.setText("正常");
+            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
             if (mLinkErrorDialog.isShowing())
                 mLinkErrorDialog.dismiss();
             if (isStartingOne && isAppearError) {             //第一阶段长在运行了
@@ -2011,20 +2027,38 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
      */
     private void initVideoView() {
         mPlear = this.findViewById(R.id.videoView);
-        final String uriOne = "android.resource://" + getPackageName() + "/" + R.raw.info_one;
-        final String uriTwo = "android.resource://" + getPackageName() + "/" + R.raw.info_two;
-
-        mPlear.setVideoURI(Uri.parse(uriTwo));
+        final String uriOne = "android.resource://" + getPackageName() + "/" + R.raw.info_three;
+        final String uriTwo = "android.resource://" + getPackageName() + "/" + R.raw.info_one;
+        final String uriThree = "android.resource://" + getPackageName() + "/" + R.raw.info_two;
+        if (Constants.URLS.ID.equals("021")){
+            mPlear.setVideoURI(Uri.parse(uriOne));
+        }else {
+            mPlear.setVideoURI(Uri.parse(uriTwo));
+        }
         mPlear.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                if (playCount == 2) {
-                    playCount = 1;
-                    mPlear.setVideoPath(uriTwo);
-                } else {
-                    playCount++;
-                    mPlear.setVideoPath(uriOne);
+                if (Constants.URLS.ID.equals("021")){
+                    if (playCount == 3){
+                        playCount = 1;
+                        mPlear.setVideoPath(uriOne);
+                    }else if (playCount == 2) {
+                        playCount++;
+                        mPlear.setVideoPath(uriThree);
+                    } else if (playCount == 1){
+                        playCount++;
+                        mPlear.setVideoPath(uriTwo);
+                    }
+                }else {
+                    if (playCount == 2){
+                        playCount = 1;
+                        mPlear.setVideoPath(uriThree);
+                    }else {
+                        playCount++;
+                        mPlear.setVideoPath(uriTwo);
+                    }
                 }
+
                 mPlear.start();
             }
         });

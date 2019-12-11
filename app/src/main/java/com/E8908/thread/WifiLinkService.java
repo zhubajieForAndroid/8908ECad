@@ -121,17 +121,17 @@ public class WifiLinkService extends Service {
     private void upDataAddCount(byte[] responses) {
         String state = DataUtil.getState(responses);                           //状态位
         String frontLockState = state.substring(2, 3);                       //前门锁定状态
-        if (frontLockState.equals("1") && isSaveTime){
+        if (frontLockState.equals("1") && isSaveTime) {
             //前门已经打开了
             String riseNumbwe = DataUtil.getRiseNumbwe(responses);                 //获取液体升数
             int resultNumber = Integer.parseInt(riseNumbwe, 16);
             SharedPreferences addNumbersAndAddTimeSp = SharedPreferencesUtils.getAddNumbersAndAddTimeSp();
             SharedPreferences.Editor edit = addNumbersAndAddTimeSp.edit();
-            edit.putInt("numbers",resultNumber);
+            edit.putInt("numbers", resultNumber);
             edit.apply();
             isSaveTime = false;
             mOpenTime = System.currentTimeMillis();
-        }else if (frontLockState.equals("0") && !isSaveTime){
+        } else if (frontLockState.equals("0") && !isSaveTime) {
             //前门已经关闭了
             isSaveTime = true;
             String riseNumbwe = DataUtil.getRiseNumbwe(responses);                 //获取液体升数
@@ -142,30 +142,32 @@ public class WifiLinkService extends Service {
             int changeCount = resultNumber - numbers;
 
             long l = System.currentTimeMillis();
-            long resultTime = (l - mOpenTime)/1000;
+            long resultTime = (l - mOpenTime) / 1000;
 
-            if (changeCount >= 100){
+            if (changeCount >= 100) {
                 //在前门开着的时候,药液的升数有变化了,上传数据
-                Map<String,String> pames = new HashMap<>();
-                pames.put("dataType","1");
-                pames.put("equipmentCode",mEquipmentId);
-                pames.put("beforeFillingVolume",numbers+"");
-                pames.put("fillingVolume",changeCount+"");
-                pames.put("afterFillingVolume",resultNumber+"");
-                pames.put("frontOrback","1");
-                pames.put("fillingTime",resultTime+"");
+                Map<String, String> pames = new HashMap<>();
+                pames.put("dataType", "1");
+                pames.put("equipmentCode", mEquipmentId);
+                pames.put("beforeFillingVolume", numbers + "");
+                pames.put("fillingVolume", changeCount + "");
+                pames.put("afterFillingVolume", resultNumber + "");
+                pames.put("frontOrback", "1");
+                pames.put("fillingTime", resultTime + "");
                 OkhttpManager okhttpManager = OkhttpManager.getOkhttpManager();
-                okhttpManager.doPost(Constants.URLS.UPDATA_ADD_NUMBER,pames,mUpdataCallback);
+                okhttpManager.doPost(Constants.URLS.UPDATA_ADD_NUMBER, pames, mUpdataCallback);
             }
         }
     }
+
     private Callback mUpdataCallback = new Callback() {
         @Override
-        public void onFailure(Call call, IOException e) {}
+        public void onFailure(Call call, IOException e) {
+        }
 
         @Override
         public void onResponse(Call call, Response response) throws IOException {
-            if (response.isSuccessful()){
+            if (response.isSuccessful()) {
             }
         }
     };
@@ -179,7 +181,6 @@ public class WifiLinkService extends Service {
                 //不允许下位机连接服务器了
                 SendUtil.setLinkServiceState(false);
                 mSocketManage.connect();
-                Log.d(TAG, "pauseLinkServiceState: wifi连接了");
             }
         } else {                                     //wifi未连接
             //允许下位机连接服务器了
@@ -188,7 +189,6 @@ public class WifiLinkService extends Service {
                 mIsWifiLinkServiceState = false;
                 mSocketManage.getConnectionManager().disconnect();
             }
-            //}
         }
     }
 
@@ -243,6 +243,7 @@ public class WifiLinkService extends Service {
                         break;
                     case 100:  //有无故障
                         String hasError = mTempList.get(18) + "";
+                        Log.d(TAG, "socketReadResponse: "+hasError);
                         switch (hasError) {
                             case "48":  //解锁
                                 SendUtil.setLock(false);
@@ -284,7 +285,6 @@ public class WifiLinkService extends Service {
                     case 0x01:                      //上传终端版本号
                         if (mBuffer.length == Constants.DATA_LONG && mSocketManage != null && !TextUtils.isEmpty(mEquipmentId)) {
                             byte[] ints = DataUtil.upDataVersionCode(mEquipmentId, DataUtil.getVwesionToSoftware(mBuffer));
-
                             mSocketManage.sendData(new TestSendData(ints));
                         }
                         break;
@@ -590,7 +590,7 @@ public class WifiLinkService extends Service {
                             riseNumbweInt, stateOne, stateTwo, stateThree);
                     mSocketManage.sendData(new TestSendData(upDateData));
                 }
-            }else {
+            } else {
                 byte[] upDateData = DataUtil.getUpDateData(mEquipmentId, workCountInt, ratioNumbweInt, rssi, temperature,
                         latitude, longitude, pressInt, flowInt, routineWorkNumbweInt, depthWorkNumbweInt, riseTotelNumbweInt,
                         riseNumbweInt, stateOne, stateTwo, stateThree);

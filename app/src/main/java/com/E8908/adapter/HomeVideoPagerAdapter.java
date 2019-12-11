@@ -1,45 +1,56 @@
 package com.E8908.adapter;
 
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
+import com.E8908.conf.Constants;
 import com.E8908.fragment.VideoFragmentOne;
+import com.E8908.fragment.VideoFragmentThree;
 import com.E8908.fragment.VideoFragmentTwo;
 
 public class HomeVideoPagerAdapter extends FragmentStatePagerAdapter {
-    public HomeVideoPagerAdapter(FragmentManager fm) {
+    private int mVideoCount;
+    public HomeVideoPagerAdapter(FragmentManager fm,int videoCount) {
         super(fm);
+        mVideoCount = videoCount;
     }
 
     @Override
     public Fragment getItem(int i) {
         switch (i) {
             case 0:
-                return new VideoFragmentOne();
+                if (Constants.URLS.ID.equals("021")){
+                    return new VideoFragmentThree();
+                }else {
+                    return new VideoFragmentOne();
+                }
             case 1:
-                return new VideoFragmentTwo();
+                if (Constants.URLS.ID.equals("021")){
+                    return new VideoFragmentOne();
+                }else {
+                    return new VideoFragmentTwo();
+                }
             default:
-                return null;
+                return new VideoFragmentTwo();
         }
     }
 
     @Override
     public int getCount() {
-        return 2;
+        return mVideoCount;
     }
 
-    @Nullable
-    @Override
-    public CharSequence getPageTitle(int position) {
-        switch (position) {
-            case 0:
-                return "1";
-            case 1:
-                return "2";
-            default:
-                return null;
-        }
+    //停止播放
+    public void stopPlay() {
+
+    }
+    //是否在播放
+    public boolean isPlaying() {
+        return false;
+    }
+    //开始播放
+    public void startPlay() {
+
     }
 }

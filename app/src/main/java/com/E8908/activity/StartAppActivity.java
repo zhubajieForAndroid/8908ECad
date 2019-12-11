@@ -34,12 +34,17 @@ public class StartAppActivity extends BaseActivity {
     }
 
     @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+
+    }
+
+    @Override
     protected void isWifiConnected(boolean b, int level) {
 
     }
 
     @Override
-    protected void isYesData(boolean isdata, boolean isCharging) {
+    protected void isYesData(boolean isdata) {
 
     }
 

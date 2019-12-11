@@ -64,16 +64,16 @@ public class HomeEquipmentDataView extends RelativeLayout {
                 String key = keys.getKey();
                 switch (key){
                     case "nationWideRanking":       //全国排名
-                        mWorkRanking.setText("第" + keys.getValue() + "名");
+                        mWorkRanking.setText("第" + (keys.getValue()==null?0:keys.getValue()) + "名");
                         break;
                     case "interiorRanking":         //内部排名
-                        mWorkInRanking.setText("第" + keys.getValue() + "名");
+                        mWorkInRanking.setText("第" + (keys.getValue()==null?0:keys.getValue()) + "名");
                         break;
                     case "nationWideMonthRanking":  //当月全国排名
-                        mWorkRankingMonth.setText("第" + keys.getValue() + "名");
+                        mWorkRankingMonth.setText("第" + (keys.getValue()==null?0:keys.getValue()) + "名");
                         break;
                     case "interiorMonthRanking":    //当月内部排名
-                        mWorkInRankingMonth.setText("第" + keys.getValue() + "名");
+                        mWorkInRankingMonth.setText("第" + (keys.getValue()==null?0:keys.getValue()) + "名");
                         break;
                 }
             }

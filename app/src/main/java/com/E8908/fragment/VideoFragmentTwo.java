@@ -33,6 +33,7 @@ public class VideoFragmentTwo extends Fragment implements View.OnClickListener, 
     private int mCurrentPosition;
     private String mUriTwo;
     private int callBackTime;
+    private VideoDialog mVideoDialog;
 
     @Nullable
     @Override
@@ -67,6 +68,7 @@ public class VideoFragmentTwo extends Fragment implements View.OnClickListener, 
                 mStoptwo.setVisibility(View.GONE);
             }
         });
+        mVideoDialog = new VideoDialog(mContext, R.style.dialog, mUriTwo);
     }
 
 
@@ -115,9 +117,9 @@ public class VideoFragmentTwo extends Fragment implements View.OnClickListener, 
         }
     }
     private void showDialog(int currentPosition) {
-        VideoDialog videoDialog = new VideoDialog(mContext,R.style.dialog,mUriTwo,currentPosition);
-        videoDialog.setOnCurrentPosition(this);
-        videoDialog.show();
+        mVideoDialog.setStartCurrentPosition(currentPosition);
+        mVideoDialog.setOnCurrentPosition(this);
+        mVideoDialog.show();
     }
 
     @Override

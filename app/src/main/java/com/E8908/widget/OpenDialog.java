@@ -121,10 +121,12 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
         public void onResponse(Call call, Response response) throws IOException {
             if (response.isSuccessful()) {
                 String string = response.body().string();
+                Log.d(TAG, "onResponse: "+string);
                 try {
                     JSONObject jsonObject = new JSONObject(string);
                     int errno = jsonObject.getInt("code");
                     if (errno == 0) {
+                        dismiss();
                         mOnOpenListener.startOpen("0");
                     } else {
                         mOnOpenListener.errorMsg(jsonObject.getString("message"));

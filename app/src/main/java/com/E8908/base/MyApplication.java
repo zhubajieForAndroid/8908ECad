@@ -19,6 +19,7 @@ import com.E8908.thread.ReadThread;
 import com.E8908.thread.SendService;
 import com.E8908.ui.ImageDownLoader;
 import com.E8908.util.FileUtil;
+import com.E8908.util.StringUtils;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.clj.fastble.BleManager;
@@ -94,7 +95,6 @@ public class MyApplication extends Application {
     }
 
     public static void closeSerialPort() {
-
         if (null != mReadThread) {
             ThreadPoolProxyFactory.getmThreadPoolProxy().removeTask(mReadThread);
             mReadThread.setInputStream(mInputStream,false);
@@ -103,7 +103,6 @@ public class MyApplication extends Application {
         if (null != startIntent) {
             mContext.stopService(startIntent);
         }
-        Log.d(TAG, "closeSerialPort: 关闭了"+mSerialPort+" "+mReadThread+"  ");
     }
 
     /**
@@ -114,6 +113,7 @@ public class MyApplication extends Application {
         super.onCreate();
         mHandler = new Handler();
         mContext = getApplicationContext();
+
         //异步初始化
         ThreadPoolProxyFactory.getmThreadPoolProxy().submit(new InitTask());
     }
@@ -213,6 +213,7 @@ public class MyApplication extends Application {
         Beta.enableHotfix = false;
         //sau 826006474b
         //途康 00571ef987
+        //托福士 13dab46de8
         /***** 统一初始化Bugly产品，包含Beta *****/
         Bugly.init(this, "00571ef987", false);
 

@@ -20,6 +20,7 @@ import com.E8908.conf.Constants;
 import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
 import com.E8908.util.SharedPreferencesUtils;
+import com.E8908.widget.IsSaveCountDialog;
 import com.E8908.widget.OpenDialog;
 import com.E8908.widget.ToastUtil;
 import com.clj.fastble.data.BleDevice;
@@ -49,6 +50,8 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     ImageView mBgTouch;
     @Bind(R.id.temperature_state)
     TextView mTemperatureState;
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     private boolean mIsRoutine;
     private boolean mIsYesData = false;
     private String mEquipmentNumber;
@@ -62,8 +65,11 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     private String mBleDeviceMac;
     private String mEquipmentID;
     private String mCarNumber;
-    private boolean isQueryVersion = true;          //是否查询版本信息
+
     private int mVersionState = 1;              //默认是4S配置
+    private boolean isQueryVersion = true;          //是否查询版本信息
+    private boolean isQueryVersionState = false;    //是否读取到版本信息
+    private int mComWorkCount;              //工作完成时保存的次数
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,19 +83,40 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         mBleDeviceMac = intent.getStringExtra("BleDeviceMac");
         mEquipmentID = intent.getStringExtra("equipmentID");
         mCarNumber = intent.getStringExtra("carNumber");
+
+
         mOpenDialog = new OpenDialog(this, R.style.dialog);
         mOpenDialog.setOnOpenListener(this);
         mOpenDialog.setOnCancelButtonListener(this);
         SharedPreferences bleUpdataPkSp = SharedPreferencesUtils.getBleUpdataPkSp();
         SharedPreferences.Editor edit = bleUpdataPkSp.edit();
-        if (!TextUtils.isEmpty(mPk)){
-            edit.putString("upPk",mPk);
-        }else {
-            edit.putString("upPk","");
+        if (!TextUtils.isEmpty(mPk)) {
+            edit.putString("upPk", mPk);
+        } else {
+            edit.putString("upPk", "");
         }
         edit.apply();
 
         initData();
+    }
+
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
     }
 
 
@@ -97,6 +124,11 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         mBgTouch.setOnTouchListener(this);
         mToobarBgImage.setImageResource(R.mipmap.bg_cg_top_4);
         mBgTouch.setImageResource(R.mipmap.bg_cg_3);
+
+        //读取工作完成时保存的次数
+        SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
+        mComWorkCount = workCount.getInt("comWorkCount", 1);
+
     }
 
     @Override
@@ -129,6 +161,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         }
         //6   [42, 6, 35, 0, 15, 35]
         if (size == 6) {             //返回的版本信息数据
+            isQueryVersionState = true;
             int versionInfo = buffer[3];
             switch (versionInfo) {
                 case 0:                 //修理厂的版本
@@ -139,6 +172,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                     break;
             }
         }
+
     }
 
     private void setResultData(byte[] buffer) {
@@ -180,15 +214,10 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata,boolean isCharging) {
+    protected void isYesData(boolean isdata) {
         if (isdata && mIsYesData) {        //成功
-            if (isCharging){
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
-            }else {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
-            }
+            mMessageState.setText("正常");
+            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -200,7 +229,6 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         //查询版本信息
         if (isQueryVersion) {
             isQueryVersion = false;
-            mCurrentState = 4;
             SendUtil.queryVersionInfo();
         }
         String state = DataUtil.getState(buffer);                           //状态位
@@ -215,7 +243,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                 mOpenDialog.dismiss();
             }
             SystemClock.sleep(500);
-            Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo22.class);
+            Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo4.class);
             intent.putExtra("isRoutine", mIsRoutine);
             intent.putExtra("isStart", true);
             intent.putExtra("pk", mPk);
@@ -228,12 +256,11 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         }
 
 
+
         int signalStrength = DataUtil.getSignalStrength(buffer);            //获取信号强度
 
         mEquipmentNumber = DataUtil.getEquipmentNumber(buffer);
         String connectServerState = state.substring(3, 4);                  //连接服务器状态
-        String activationState = state.substring(4, 5);                     //设备激活状态
-        String lockState = state.substring(5, 6);                           //设备锁定状态
         //00011000
         String afterLockState = state.substring(1, 2);                       //后门锁定状态
         String frontLockState = state.substring(2, 3);                       //前门锁定状态
@@ -290,69 +317,70 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
             SendUtil.setReadyState(mEquipmentNumber, 0);
         } else if ((x >= 540 && x <= 794) && (y >= 709 && y <= 785)) {         //下一步
             if (!TextUtils.isEmpty(mEquipmentNumber)) {
-                if (mVersionState == 0) {       //修理厂的版本
-                    if (!mOpenDialog.isShowing()) {
-                        mOpenDialog.setinit(mEquipmentNumber);
-                        mOpenDialog.show();
-                        //设置设备已经就绪
-                        mCurrentState = 1;
-                        SendUtil.setReadyState(mEquipmentNumber, 1);
+                //SAU的版本,只有4S的
+                if (Constants.URLS.ID.equals("014")) {
+                    if (mVersionState == 0) {       //修理厂的版本
+                        if (mComWorkCount == 0) {                //工作次数为初始值,说明上次工作异常结束
+                            checkCount();
+                        }else {
+                            showReadyDialog();
+                        }
+                    } else if (mVersionState == 1) {                         //4S点的版本
+                        startActOne(false,true);
                     }
-                } else if (mVersionState == 1){                         //4S点的版本
-                    Intent brd = new Intent();
-                    brd.setAction(Constants.ACTIVITY_STATE);
-                    sendBroadcast(brd);
-                    Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo22.class);
-                    intent.putExtra("isRoutine", mIsRoutine);
-                    intent.putExtra("isStart", false);
-                    intent.putExtra("pk", mPk);
-                    intent.putExtra("shopName", mShopName);
-                    intent.putExtra("BleDeviceMac", mBleDeviceMac);
-                    intent.putExtra("carNumber", mCarNumber);
-                    intent.putExtra("equipmentID", mEquipmentID);
-                    startActivity(intent);
-                    finish();
+                } else {
+                    if (isQueryVersionState) {
+                        if (mVersionState == 0) {       //修理厂的版本
+                            if (mComWorkCount == 0) {                //工作次数为初始值,说明上次工作异常结束
+                                checkCount();
+                            }else {
+                                showReadyDialog();
+                            }
+                        } else if (mVersionState == 1) {                         //4S点的版本
+                            startActOne(false,true);
+                        }
+                    }
                 }
             }
-
         }
         return false;
     }
+
+    /**
+     * 判断次数是否一致
+     */
+    private void checkCount() {
+        IsSaveCountDialog dialog = new IsSaveCountDialog(this, R.style.dialog);
+        dialog.setOnYesBtnListener(new IsSaveCountDialog.OnYesBtnListener() {
+            @Override
+            public void isYesBtnClick(boolean isYes) {
+                if (isYes)
+                    startActOne(false, false);
+            }
+        });
+        if (!dialog.isShowing())
+            dialog.show();
+    }
+
+    private void showReadyDialog() {
+        if (!mOpenDialog.isShowing()) {
+            mOpenDialog.setinit(mEquipmentNumber);
+            mOpenDialog.show();
+            //设置设备已经就绪
+            mCurrentState = 1;
+            SendUtil.setReadyState(mEquipmentNumber, 1);
+        }
+    }
+
 
     @Override
     public void startOpen(String state) {           //校验成功
         if ("9".equals(state)) {
             SystemClock.sleep(500);
-            Intent brd = new Intent();
-            brd.setAction(Constants.ACTIVITY_STATE);
-            sendBroadcast(brd);
-            //mOpenDialog.dismiss();
-            Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo22.class);
-            intent.putExtra("isRoutine", mIsRoutine);
-            intent.putExtra("isStart", true);
-            intent.putExtra("pk", mPk);
-            intent.putExtra("shopName", mShopName);
-            intent.putExtra("BleDeviceMac", mBleDeviceMac);
-            intent.putExtra("carNumber", mCarNumber);
-            intent.putExtra("equipmentID", mEquipmentID);
-            startActivity(intent);
-            finish();
+            startActOne(true,true);
         } else {
             SystemClock.sleep(500);
-            Intent brd = new Intent();
-            brd.setAction(Constants.ACTIVITY_STATE);
-            sendBroadcast(brd);
-            mOpenDialog.dismiss();
-            Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo22.class);
-            intent.putExtra("isRoutine", mIsRoutine);
-            intent.putExtra("isStart", false);
-            intent.putExtra("pk", mPk);
-            intent.putExtra("shopName", mShopName);
-            intent.putExtra("BleDeviceMac", mBleDeviceMac);
-            intent.putExtra("carNumber", mCarNumber);
-            intent.putExtra("equipmentID", mEquipmentID);
-            startActivity(intent);
-            finish();
+            startActOne(false,true);
         }
     }
 
@@ -380,5 +408,24 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     public void onCancelClick() {
         mCurrentState = 3;
         SendUtil.setReadyState(mEquipmentNumber, 0);
+    }
+
+
+
+    private void startActOne(boolean b, boolean isSave) {
+        Intent brd = new Intent();
+        brd.setAction(Constants.ACTIVITY_STATE);
+        sendBroadcast(brd);
+        Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo4.class);
+        intent.putExtra("isRoutine", mIsRoutine);
+        intent.putExtra("isStart", b);          //自启动
+        intent.putExtra("pk", mPk);
+        intent.putExtra("shopName", mShopName);
+        intent.putExtra("BleDeviceMac", mBleDeviceMac);
+        intent.putExtra("carNumber", mCarNumber);
+        intent.putExtra("equipmentID", mEquipmentID);
+        intent.putExtra("isSaveCount", isSave);   //是否记录次数
+        startActivity(intent);
+        finish();
     }
 }

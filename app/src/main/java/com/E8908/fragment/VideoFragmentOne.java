@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,6 +29,7 @@ public class VideoFragmentOne extends Fragment implements View.OnClickListener, 
     private String mUriOne;
     private int mCurrentPosition;
     private int callBackTime;
+    private VideoDialog mVideoDialog;
 
     @Nullable
     @Override
@@ -52,6 +54,7 @@ public class VideoFragmentOne extends Fragment implements View.OnClickListener, 
 
         mUriOne = "android.resource://" + mContext.getPackageName() + "/" + R.raw.info_one;
         mVideoView.setVideoPath(mUriOne);
+
         mVideoView.setBackground(mContext.getResources().getDrawable(R.mipmap.hone_icon_one));
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -63,7 +66,8 @@ public class VideoFragmentOne extends Fragment implements View.OnClickListener, 
                 mStopOne.setVisibility(View.GONE);
             }
         });
-
+        mVideoDialog = new VideoDialog(mContext, R.style.dialog, mUriOne);
+        mVideoDialog.setOnCurrentPosition(this);
     }
 
     @Override
@@ -114,9 +118,8 @@ public class VideoFragmentOne extends Fragment implements View.OnClickListener, 
     }
 
     private void showDialog(int currentPosition) {
-        VideoDialog videoDialog = new VideoDialog(mContext, R.style.dialog, mUriOne, currentPosition);
-        videoDialog.setOnCurrentPosition(this);
-        videoDialog.show();
+        mVideoDialog.setStartCurrentPosition(currentPosition);
+        mVideoDialog.show();
     }
 
     @Override

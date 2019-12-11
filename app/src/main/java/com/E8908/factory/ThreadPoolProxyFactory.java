@@ -9,7 +9,7 @@ public class ThreadPoolProxyFactory {
     private static ThreadPoolProxy mThreadPoolProxy;
     public static ThreadPoolProxy getmThreadPoolProxy(){
         if (mThreadPoolProxy == null){
-            mThreadPoolProxy = new ThreadPoolProxy(1);
+            mThreadPoolProxy = new ThreadPoolProxy(3);
         }
         return mThreadPoolProxy;
     }

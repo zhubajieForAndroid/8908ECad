@@ -2,7 +2,6 @@ package com.E8908.activity;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -42,18 +41,14 @@ import com.E8908.util.StringUtils;
 import com.E8908.widget.ActivationDialog;
 import com.E8908.widget.IsLockDialog;
 import com.E8908.widget.JurisdictionDialog;
-import com.E8908.widget.LinkSeverDialog;
 import com.E8908.widget.StopDialog;
 import com.E8908.widget.ToastUtil;
-import com.clj.fastble.BleManager;
 import com.tencent.bugly.beta.Beta;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,14 +59,14 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-import static android.support.constraint.Constraints.TAG;
 
-
-public class MainActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener, ViewPager.OnPageChangeListener {
 
     private static final String TAG = "MainActivity";
     @Bind(R.id.message_state)
     TextView mMessageState;
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     @Bind(R.id.tab_image_front_state)
     ImageView mTabImageFrontState;
     @Bind(R.id.tab_image_communication_state)
@@ -89,6 +84,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     TabLayout mTabLayout;
     @Bind(R.id.view_pager)
     ViewPager mViewPager;
+    @Bind(R.id.indicator_container)
+    LinearLayout mIndicatorContainer;
 
 
     private boolean isYesData = false;
@@ -119,8 +116,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private String mType;
     private int mRankings;
     private boolean isLoadRank = true;          //是否请求排名
-    private Map<String,Object> rankingMap = new HashMap<>();        //排名信息
-
+    private Map<String, Object> rankingMap = new HashMap<>();        //排名信息
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,15 +142,58 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         loadVideo();
     }
 
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
+    }
+
     private void loadVideo() {
         ViewPager viewPager = findViewById(R.id.home_viewpager);
-        TabLayout tabLayout = findViewById(R.id.tab);
+        int videoCount;
+        if (Constants.URLS.ID.equals("021")) {
+            videoCount = 3;
+            addVideoIndicator(videoCount);
+        } else {
+            videoCount = 2;
+            addVideoIndicator(videoCount);
+        }
 
-        HomeVideoPagerAdapter adapter = new HomeVideoPagerAdapter(getSupportFragmentManager());
+        HomeVideoPagerAdapter adapter = new HomeVideoPagerAdapter(getSupportFragmentManager(), videoCount);
         viewPager.setAdapter(adapter);
-        tabLayout.setupWithViewPager(viewPager);
+        viewPager.addOnPageChangeListener(this);
+        //搞=316  宽=521
         //检查更新
         Beta.checkUpgrade();
+    }
+
+    //动态添加videoPager的指示器
+    private void addVideoIndicator(int videoCount) {
+        for (int i = 0; i < videoCount; i++) {
+            View view = new View(this);
+            if (i == 0) {
+                view.setBackground(getResources().getDrawable(R.drawable.home_pager_select_shape));
+            } else {
+                view.setBackground(getResources().getDrawable(R.drawable.home_info_shape));
+            }
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+                params.setMargins(10, 0, 0, 0);
+            view.setLayoutParams(params);
+            mIndicatorContainer.addView(view);
+        }
     }
 
 
@@ -186,21 +225,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 if (isLinkBle) {
                     byte[] buffer = intent.getByteArrayExtra("data");
                     String bleID = intent.getStringExtra("bleID");
-                    mHomeDataAdapter.setData(buffer,rankingMap,true,bleID);
-                }else {
+                    mHomeDataAdapter.setData(buffer, rankingMap, true, bleID);
+                } else {
                     //ToastUtil.showMessage("连接失败");
                 }
                 mHomeDataAdapter.setLinkBleState(isLinkBle);
             }
         }
     };
+
     //串口数据
     @Override
     public void onDataReceived(final byte[] buffer, int size) {
         isYesData = true;
         if (size == Constants.DATA_LONG && buffer[2] == 0x03) {
             analysisData(buffer);
-            mHomeDataAdapter.setData(buffer,rankingMap,false,"");
+            mHomeDataAdapter.setData(buffer, rankingMap, false, "");
         }
         if (size == Constants.SET_RESULT_LINGTH) {
             setResultData(buffer);
@@ -226,16 +266,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata, boolean isCharging) {
+    protected void isYesData(boolean isdata) {
         if (isdata && isYesData) {        //成功
-            if (isCharging) {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
-            } else {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
-            }
-
+            mMessageState.setText("正常");
+            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
@@ -436,12 +470,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                                 mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
                                 mIntent.putExtra("isRoutine", true);
                                 startActivity(mIntent);
-
                             } else {
                                 mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
                                 mIntent.putExtra("isRoutine", true);
                                 startActivity(mIntent);
-
                             }
                         } else {
                             ToastUtil.showMessage("药液不足1L,请加注");
@@ -553,7 +585,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     protected void onStart() {
         super.onStart();
-        if (!TextUtils.isEmpty(mEquipmentNumber) && !"00000000".equals(mEquipmentNumber)){
+        if (!TextUtils.isEmpty(mEquipmentNumber) && !"00000000".equals(mEquipmentNumber)) {
             loadRankData();
         }
         //每次返回主界面都设置下状态为未就绪
@@ -568,9 +600,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         pames.put("equipmentID", mEquipmentNumber);
         okhttpManager.doPost(Constants.URLS.EQUIPMENT_RANK_DATA, pames, mRankingCallBack);
     }
+
     private Callback mRankingCallBack = new Callback() {
         @Override
-        public void onFailure(Call call, IOException e) {}
+        public void onFailure(Call call, IOException e) {
+        }
+
         @Override
         public void onResponse(Call call, Response response) throws IOException {
             if (response.isSuccessful()) {
@@ -581,13 +616,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     if (code == 0) {
                         JSONObject responseObj = object.getJSONObject("response");
                         String nationWideRanking = responseObj.getString("nationWideRanking");
-                        rankingMap.put("nationWideRanking",nationWideRanking);
+                        rankingMap.put("nationWideRanking", nationWideRanking);
                         String interiorRanking = responseObj.getString("interiorRanking");
-                        rankingMap.put("interiorRanking",interiorRanking);
+                        rankingMap.put("interiorRanking", interiorRanking);
                         String nationWideMonthRanking = responseObj.getString("nationWideMonthRanking");
-                        rankingMap.put("nationWideMonthRanking",nationWideMonthRanking);
+                        rankingMap.put("nationWideMonthRanking", nationWideMonthRanking);
                         String interiorMonthRanking = responseObj.getString("interiorMonthRanking");
-                        rankingMap.put("interiorMonthRanking",interiorMonthRanking);
+                        rankingMap.put("interiorMonthRanking", interiorMonthRanking);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -595,6 +630,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
         }
     };
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -670,5 +706,27 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         BluetoothAdapter defaultAdapter = BluetoothAdapter.getDefaultAdapter();
         if (defaultAdapter.isEnabled())
             defaultAdapter.disable();
+    }
+
+    @Override
+    public void onPageScrolled(int i, float v, int i1) {
+
+    }
+
+    @Override
+    public void onPageSelected(int i) {
+        int childCount = mIndicatorContainer.getChildCount();
+        for (int j = 0; j < childCount; j++) {
+            View childAt = mIndicatorContainer.getChildAt(j);
+            childAt.setBackground(getResources().getDrawable(R.drawable.home_info_shape));
+        }
+        View childAt = mIndicatorContainer.getChildAt(i);
+        childAt.setBackground(getResources().getDrawable(R.drawable.home_pager_select_shape));
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int i) {
+
     }
 }

@@ -52,6 +52,8 @@ public class GasListActivityDemo extends BaseToolBarActivity implements View.OnC
     ImageView mCreateTab;
     @Bind(R.id.edit_btn)
     Button mEditBtn;
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     private String mEquipmentId;
     private List<CreateTabListBean.ResponseBean.RowsBean> mRowsBeans;
     private GasListAdapter mAdapter;
@@ -72,6 +74,30 @@ public class GasListActivityDemo extends BaseToolBarActivity implements View.OnC
         mHandler = new Handler();
 
         initListener();
+    }
+
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
+    }
+
+    @Override
+    protected void isYesData(boolean isdata) {
+
     }
 
     @Override

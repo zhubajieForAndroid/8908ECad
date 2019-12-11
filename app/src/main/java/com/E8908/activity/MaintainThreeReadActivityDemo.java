@@ -95,6 +95,8 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     LinearLayout mProgressBar;
     @Bind(R.id.bleid)
     TextView mBleid;
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     private boolean mIsRoutine;
     private boolean mIsYesData = false;
     private String mEquipmentId;
@@ -118,6 +120,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     private SharedPreferences mJumpStateInfo;
     private boolean mIsBleLink;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,6 +135,25 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         mCarNumbers = new ArrayList<>();
 
         initData();
+    }
+
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
     }
 
     private void initData() {
@@ -388,6 +410,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         if (size == Constants.DATA_LONG && buffer[2] == 0x03) {
             analysisData(buffer);
         }
+
     }
 
     /**
@@ -396,15 +419,10 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata, boolean isCharging) {
+    protected void isYesData(boolean isdata) {
         if (isdata && mIsYesData) {        //成功
-            if (isCharging) {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
-            } else {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
-            }
+            mMessageState.setText("正常");
+            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));

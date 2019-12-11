@@ -42,6 +42,8 @@ public class FillingTwoActivity extends BaseActivity implements View.OnTouchList
     TextView mRatioNumbwe;
     @Bind(R.id.temperature_state)
     TextView mTemperatureState;
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     private boolean mIsYesData = false;
     private int currentState;
     private int mAnInt;
@@ -55,6 +57,25 @@ public class FillingTwoActivity extends BaseActivity implements View.OnTouchList
         setContentView(R.layout.activity_filling_two);
         ButterKnife.bind(this);
         initData();
+    }
+
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
     }
 
     @Override
@@ -134,15 +155,10 @@ public class FillingTwoActivity extends BaseActivity implements View.OnTouchList
      * @param isdata
      */
     @Override
-    protected void isYesData(boolean isdata,boolean isCharging) {
+    protected void isYesData(boolean isdata) {
         if (isdata && mIsYesData) {        //成功
-            if (isCharging){
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
-            }else {
-                mMessageState.setText("正常");
-                mMessageState.setTextColor(Color.parseColor("#fdfa0310"));
-            }
+            mMessageState.setText("正常");
+            mMessageState.setTextColor(Color.parseColor("#fd0fc602"));
         } else {             //失败
             mMessageState.setText("断开");
             mMessageState.setTextColor(Color.parseColor("#fdfa0310"));

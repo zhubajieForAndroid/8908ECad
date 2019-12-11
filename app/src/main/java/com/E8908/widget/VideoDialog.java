@@ -39,11 +39,10 @@ public class VideoDialog extends Dialog implements View.OnTouchListener{
     private OnCurrentPosition mOnCurrentPosition;
     private Window mMwindow;
 
-    public VideoDialog(Context context, int themeResId, String uriOne, int currentPosition) {
+    public VideoDialog(Context context, int themeResId, String uriOne) {
         super(context, themeResId);
         mUrl = uriOne;
         mContext =context;
-        mCurrentPosition = currentPosition;
     }
 
     @Override
@@ -73,13 +72,13 @@ public class VideoDialog extends Dialog implements View.OnTouchListener{
 
         //获取当前音量
         mCurrentVolume = mManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
     }
 
     @Override
     public void dismiss() {
         super.dismiss();
         if (mVideoView != null && mVideoView.isPlaying()){
-
             mVideoView.stopPlayback();
             mVideoView = null;
         }
@@ -122,6 +121,12 @@ public class VideoDialog extends Dialog implements View.OnTouchListener{
         }
         return true;
     }
+
+    //设置开始播放视频时的进度
+    public void setStartCurrentPosition(int currentPosition) {
+        mCurrentPosition = currentPosition;
+    }
+
     public interface OnCurrentPosition{
         void onPosition(int time);
     }

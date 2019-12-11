@@ -67,6 +67,8 @@ import top.zibin.luban.OnCompressListener;
 public class EditTabActivity extends BaseToolBarActivity implements ViewPager.OnPageChangeListener, View.OnClickListener, QuerySuccess, CreateTabAdapter.OnCreateWpbfView, CreateTabAdapter.OnCreateKtxtView, CreateTabAdapter.OnCheneiYiweiCreatedListener, BaseView<String>, SelectImageDialog.OnSelectAlbumBtnListener, SelectImageDialog.OnSelectCameraBtnListener {
 
     private static final String TAG = "EditTabActivity";
+    @Bind(R.id.battery_state)
+    ImageView mBatteryState;
     @Bind(R.id.car_number)
     TextView mCarNumber;
     @Bind(R.id.tab)
@@ -150,6 +152,30 @@ public class EditTabActivity extends BaseToolBarActivity implements ViewPager.On
         mHandler = new Handler();
         initData();
         initListener();
+    }
+
+    @Override
+    protected void electricInfo(int percent, boolean isCharging) {
+        if (!isCharging) {                //没有在充电
+            if (percent <= 20) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_20);
+            } else if (percent <= 40) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_40);
+            } else if (percent <= 60) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_60);
+            } else if (percent <= 80) {
+                mBatteryState.setImageResource(R.mipmap.battery_icon_80);
+            } else {                                 //电流81到100
+                mBatteryState.setImageResource(R.mipmap.battery_icon_100_white);
+            }
+        } else {                                  //正在充电
+            mBatteryState.setImageResource(R.mipmap.battery_icon_charge);
+        }
+    }
+
+    @Override
+    protected void isYesData(boolean isdata) {
+
     }
 
     private void initData() {

@@ -554,6 +554,8 @@ public class WifiLinkService extends Service {
             //获取经度信息
             String longitude = locationState.getString("longitude", "");
 
+
+
             String re = latitude + longitude;
             //获取交流电压
             int pressInt = DataUtil.directElectricPress(mBuffer);
@@ -572,8 +574,16 @@ public class WifiLinkService extends Service {
             String riseNumbwe = DataUtil.getRiseNumbwe(mBuffer);
             int riseNumbweInt = Integer.parseInt(riseNumbwe, 16);
 
+            String state = DataUtil.getState(mBuffer);                           //状态位
+            String substring = state.substring(7, 8);//自定义禁用状态2019-12-12 18:09:46
+            int stateOne;
             //状态1 最高位强制设置为0代表设备数据,  00000010 代表wifi 00000000代表DTU
-            int stateOne = 2;
+            if ("0".equals(substring)){         //上传常规模式
+                stateOne = 2;
+            }else {                             //上传自定义模式
+                stateOne = 3;
+            }
+
 
             //获取状态2
             int stateTwo = getEquipment();

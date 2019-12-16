@@ -119,6 +119,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
     private CheckBox mJumpBox;
     private SharedPreferences mJumpStateInfo;
     private boolean mIsBleLink;
+    private String mUserID;
 
 
     @Override
@@ -128,6 +129,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
         ButterKnife.bind(this);
         Intent intent = getIntent();
         mIsRoutine = intent.getBooleanExtra("isRoutine", false);
+        mUserID = intent.getStringExtra("userID");
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("数据加载中");
         mProgressDialog.setCanceledOnTouchOutside(false);
@@ -508,6 +510,7 @@ public class MaintainThreeReadActivityDemo extends BaseActivity implements View.
             SendUtil.controlVoice();
             Intent intent = new Intent(this, MaintainThreeActivity.class);
             intent.putExtra("isRoutine", mIsRoutine);
+            intent.putExtra("userID", mUserID);
             if (isSelectCarNumber) {                //是否选中了车牌
                 intent.putExtra("pk", mCarNumbers.get(mSelectCarNumberPosition).getPk());
                 intent.putExtra("shopName", mCarNumbers.get(mSelectCarNumberPosition).getSimpleName());

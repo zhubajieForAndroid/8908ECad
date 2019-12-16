@@ -196,7 +196,6 @@ public class FillingActivity extends BaseActivity implements View.OnTouchListene
             }
         }else if ((x >= 990 && x <= 1255) && (y >= 660 && y <= 798)){
             finish();
-            SendUtil.controlVoice();
         }
         return false;
     }

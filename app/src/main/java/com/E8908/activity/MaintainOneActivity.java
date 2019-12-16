@@ -45,6 +45,7 @@ public class MaintainOneActivity extends BaseActivity implements View.OnTouchLis
     ImageView mBatteryState;
     private boolean mIsRoutine;
     private boolean mIsYesData = false;
+    private String mUsetID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,7 @@ public class MaintainOneActivity extends BaseActivity implements View.OnTouchLis
         setContentView(R.layout.activity_maintain_one);
         ButterKnife.bind(this);
         mIsRoutine = getIntent().getBooleanExtra("isRoutine", false);
+        mUsetID = getIntent().getStringExtra("userID");
 
         initData();
     }
@@ -209,12 +211,12 @@ public class MaintainOneActivity extends BaseActivity implements View.OnTouchLis
         float x = event.getX();
         float y = event.getY();
         if ((x >= 25 && x <= 290) && (y >= 660 && y <= 795)) {                //返回
-            SendUtil.controlVoice();
             finish();
         } else if ((x >= 540 && x <= 1234) && (y >= 665 && y <= 790)) {         //下一步
             SendUtil.controlVoice();
             Intent intent = new Intent(this, MaintainTwoActivity.class);
             intent.putExtra("isRoutine", mIsRoutine);
+            intent.putExtra("userID", mUsetID);
             startActivity(intent);
         }
         return false;

@@ -288,7 +288,6 @@ public class HistoryActivity extends BaseActivity implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.back_btn:
-                SendUtil.controlVoice();
                 finish();
                 break;
             case R.id.search_iv:                //搜索

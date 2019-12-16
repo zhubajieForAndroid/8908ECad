@@ -277,7 +277,6 @@ public class WorkStatisticsActivity extends BaseActivity implements View.OnClick
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.bt_back:
-                SendUtil.controlVoice();
                 finish();
                 break;
             case R.id.text_function:        //功能测试

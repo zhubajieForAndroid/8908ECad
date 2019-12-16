@@ -43,6 +43,7 @@ import com.E8908.widget.IsLockDialog;
 import com.E8908.widget.JurisdictionDialog;
 import com.E8908.widget.StopDialog;
 import com.E8908.widget.ToastUtil;
+import com.E8908.widget.YnnLoginDialog;
 import com.tencent.bugly.beta.Beta;
 
 import org.json.JSONException;
@@ -60,7 +61,7 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 
-public class MainActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener, ViewPager.OnPageChangeListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener, View.OnTouchListener, JurisdictionDialog.OnCheckJListener, ViewPager.OnPageChangeListener, YnnLoginDialog.OnBtnClickListener {
 
     private static final String TAG = "MainActivity";
     @Bind(R.id.message_state)
@@ -117,6 +118,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private int mRankings;
     private boolean isLoadRank = true;          //是否请求排名
     private Map<String, Object> rankingMap = new HashMap<>();        //排名信息
+    private String mName;
+    private String mUserId;
+    private int mVersionState = 1;              //默认是4S配置
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +139,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         IntentFilter blefilter = new IntentFilter();
         blefilter.addAction(Constants.BLE_DATA);
         registerReceiver(mBleReceiver, blefilter);
+
+        //技师登录的名字和ID
+        Intent intent = getIntent();
+        mName = intent.getStringExtra("name");
+        mUserId = intent.getStringExtra("userId");
 
         initView();
         initData();
@@ -190,7 +199,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 view.setBackground(getResources().getDrawable(R.drawable.home_info_shape));
             }
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-                params.setMargins(10, 0, 0, 0);
+            params.setMargins(10, 0, 0, 0);
             view.setLayoutParams(params);
             mIndicatorContainer.addView(view);
         }
@@ -244,6 +253,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
         if (size == Constants.SET_RESULT_LINGTH) {
             setResultData(buffer);
+        }
+        //6   [42, 6, 35, 0, 15, 35]
+        if (size == 6) {             //返回的版本信息数据
+            int versionInfo = buffer[3];
+            switch (versionInfo) {
+                case 0:                 //修理厂的版本
+                    mVersionState = 0;
+                    break;
+                case 1:                 //4s点的配置
+                    mVersionState = 1;
+                    break;
+            }
         }
     }
 
@@ -399,6 +420,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
         }
 
+
+
     }
 
     private void initData() {
@@ -460,110 +483,53 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 startActivity(mIntent);
                 break;
             case R.id.tab_linearlayout_routine:                 //常规模式
-                if ("0".equals(mIsProhibit)) {                  //检测到打开了常规,只能使用常规模式
-                    SendUtil.closeAll();
-                    //在点击常规和深度保养时检测当前药液量,如果大于20.5升就提示(新药液桶药液过多,不能再加注药液了)
-                    if (mResultRatioNumbwe < 20500) {
-                        if (mResultRatioNumbwe > 1000) {    //检测药液量是否大于1000ML
-                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
-                            if (isJump) {                //跳过了第一二步骤
-                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
-                                mIntent.putExtra("isRoutine", true);
-                                startActivity(mIntent);
-                            } else {
-                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                                mIntent.putExtra("isRoutine", true);
-                                startActivity(mIntent);
-                            }
-                        } else {
-                            ToastUtil.showMessage("药液不足1L,请加注");
+                if ("0".equals(mIsProhibit)) {
+                    if (mVersionState == 0) {           //当前是修理厂版本,必须用户登录
+                        if (!TextUtils.isEmpty(mUserId)) {                  //用户已经登录
+                            String title = "当前登录的账号:" + mName;
+                            String yesBtnStr = "继续操作";
+                            String cancleBtnStr = "切换账号";
+                            YnnLoginDialog dialog = new YnnLoginDialog(this, R.style.dialog, title, yesBtnStr, cancleBtnStr, true);
+                            dialog.setOnBtnClickListener(this);
+                            dialog.show();
+                        } else {                                             //用户没有登录
+                            String title = "请员工登录后再继续操作";
+                            String yesBtnStr = "是";
+                            String cancleBtnStr = "否";
+                            YnnLoginDialog dialog = new YnnLoginDialog(this, R.style.dialog, title, yesBtnStr, cancleBtnStr, false);
+                            dialog.setOnBtnClickListener(this);
+                            dialog.show();
                         }
                     } else {
-                        if (!mStopDialog.isShowing()) {
-                            mStopDialog.setBitmap(R.mipmap.home_popovers_hint_2);
-                            mStopDialog.show();
-                            mStopDialog.setOnMakeSuerListener(new StopDialog.OnMakeSuerListener() {
-                                @Override
-                                public void isMakeUser(boolean b) {
-                                    if (b) {
-                                        mStopDialog.dismiss();
-                                        if (mResultRatioNumbwe > 1000) {
-                                            SendUtil.controlVoice();
-                                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
-                                            if (isJump) {                //跳过了第一二步骤
-                                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
-                                                mIntent.putExtra("isRoutine", true);
-                                                startActivity(mIntent);
-                                            } else {
-                                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                                                mIntent.putExtra("isRoutine", true);
-                                                startActivity(mIntent);
-                                            }
-                                        } else {
-                                            ToastUtil.showMessage("药液不足1L,请加注");
-                                        }
-                                    }
-                                }
-                            });
-                        }
+                        start(true);
                     }
-                } else {
-                    ToastUtil.showMessage("此功能未获取权限");
+                }else {
+                    ToastUtil.showMessage("此功能未开放权限");
                 }
                 break;
             case R.id.tab_linearlayout_depth:                    //自定义模式
-                if ("1".equals(mIsProhibit)) {      //检测关闭了常规,可以使用自定义模式
-                    SendUtil.closeAll();
-                    if (mResultRatioNumbwe < 20500) {
-                        if (mResultRatioNumbwe > 1000) {
-                            SendUtil.closeAll();
-                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
-                            if (isJump) {                //跳过了第一二步骤
-                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
-                                mIntent.putExtra("isRoutine", false);
-                                startActivity(mIntent);
-
-                            } else {
-                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                                mIntent.putExtra("isRoutine", false);
-                                startActivity(mIntent);
-
-                            }
-                        } else {
-                            ToastUtil.showMessage("药液不足1L,请加注");
+                if ("1".equals(mIsProhibit)) {
+                    if (mVersionState == 0) {           //当前是修理厂版本,必须用户登录
+                        if (!TextUtils.isEmpty(mUserId)) {                  //用户已经登录
+                            String title = "当前登录的账号:" + mName;
+                            String yesBtnStr = "继续操作";
+                            String cancleBtnStr = "切换账号";
+                            YnnLoginDialog dialog = new YnnLoginDialog(this, R.style.dialog, title, yesBtnStr, cancleBtnStr, true);
+                            dialog.setOnBtnClickListener(this);
+                            dialog.show();
+                        } else {                                             //用户没有登录
+                            String title = "请员工登录后再继续操作";
+                            String yesBtnStr = "是";
+                            String cancleBtnStr = "否";
+                            YnnLoginDialog dialog = new YnnLoginDialog(this, R.style.dialog, title, yesBtnStr, cancleBtnStr, false);
+                            dialog.setOnBtnClickListener(this);
+                            dialog.show();
                         }
                     } else {
-                        if (!mStopDialog.isShowing()) {
-                            mStopDialog.setBitmap(R.mipmap.home_popovers_hint_2);
-                            mStopDialog.show();
-                            mStopDialog.setOnMakeSuerListener(new StopDialog.OnMakeSuerListener() {
-                                @Override
-                                public void isMakeUser(boolean b) {
-                                    if (b) {
-                                        mStopDialog.dismiss();
-                                        if (mResultRatioNumbwe > 1000) {
-                                            SendUtil.controlVoice();
-                                            boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
-                                            if (isJump) {                //跳过了第一二步骤
-                                                mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
-                                                mIntent.putExtra("isRoutine", false);
-                                                startActivity(mIntent);
-
-                                            } else {
-                                                mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
-                                                mIntent.putExtra("isRoutine", false);
-                                                startActivity(mIntent);
-                                            }
-                                        } else {
-                                            ToastUtil.showMessage("药液不足1L,请加注");
-                                        }
-                                    }
-                                }
-                            });
-                        }
+                        start(false);
                     }
-                } else {
-                    ToastUtil.showMessage("此功能未获取权限");
+                }else {
+                    ToastUtil.showMessage("此功能未开放权限");
                 }
                 break;
             case R.id.tab_linearlayout_infusion_solution:       //加注药液
@@ -577,10 +543,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 mIntent.putExtra("equipmentId", mEquipmentNumber);
                 startActivity(mIntent);
                 break;
-
         }
     }
-
 
     @Override
     protected void onStart() {
@@ -689,6 +653,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        //发送查询是4s店还是修理厂
+        SendUtil.queryVersionInfo();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         MyApplication.closeSerialPort();
@@ -728,5 +699,75 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     public void onPageScrollStateChanged(int i) {
 
+    }
+
+    @Override
+    public void clickBtn(boolean isCancle, boolean isLogin) {
+        if (isLogin) {           //已经登录
+            if (isCancle) {      //继续操作
+                if ("0".equals(mIsProhibit)){
+                    start(true);
+                }else {
+                    start(false);
+                }
+            } else {             //切换账号
+                finish();
+            }
+        } else {                 //没有登录
+            if (isCancle) {      //去登录
+                finish();
+            }
+        }
+    }
+
+    private void start(final boolean isChanggui) {
+            if (mResultRatioNumbwe < 20500) {
+                if (mResultRatioNumbwe > 1000) {    //检测药液量是否大于1000ML
+                    boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+                    if (isJump) {                //跳过了第一二步骤
+                        mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
+                        mIntent.putExtra("isRoutine", isChanggui);
+                        mIntent.putExtra("userID", mUserId);
+                        startActivity(mIntent);
+                    } else {
+                        mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
+                        mIntent.putExtra("isRoutine", isChanggui);
+                        mIntent.putExtra("userID", mUserId);
+                        startActivity(mIntent);
+                    }
+                } else {
+                    ToastUtil.showMessage("药液不足1L,请加注");
+                }
+            }else {
+                if (!mStopDialog.isShowing()) {
+                    mStopDialog.setBitmap(R.mipmap.home_popovers_hint_2);
+                    mStopDialog.show();
+                    mStopDialog.setOnMakeSuerListener(new StopDialog.OnMakeSuerListener() {
+                        @Override
+                        public void isMakeUser(boolean b) {
+                            if (b) {
+                                mStopDialog.dismiss();
+                                if (mResultRatioNumbwe > 1000) {
+                                    SendUtil.controlVoice();
+                                    boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
+                                    if (isJump) {                //跳过了第一二步骤
+                                        mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);
+                                        mIntent.putExtra("isRoutine", isChanggui);
+                                        mIntent.putExtra("userID", mUserId);
+                                        startActivity(mIntent);
+                                    } else {
+                                        mIntent = new Intent(MainActivity.this, MaintainOneActivity.class);
+                                        mIntent.putExtra("isRoutine", isChanggui);
+                                        mIntent.putExtra("userID", mUserId);
+                                        startActivity(mIntent);
+                                    }
+                                } else {
+                                    ToastUtil.showMessage("药液不足1L,请加注");
+                                }
+                            }
+                        }
+                    });
+                }
+            }
     }
 }

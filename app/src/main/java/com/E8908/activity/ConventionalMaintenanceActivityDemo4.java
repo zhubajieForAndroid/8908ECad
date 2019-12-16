@@ -270,6 +270,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
     private String mTemperatureStateStr;
     private RunVideoPagerAdapter mHomeVideoPagerAdapter;
     private boolean mIsSaveCount;
+    private SharedPreferences mWorkCount;
 
 
     @Override
@@ -311,9 +312,9 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
         mBackErrorDialog = new BackErrorDialog(this, R.style.dialog);
         mBackErrorDialog.setID(R.mipmap.home_popovers_hint_04);
         mBackErrorDialog.setOnBackClickListener(this);
-        //初始化保存次数的标记
-        SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
-        SharedPreferences.Editor edit = workCount.edit();
+        //初始化是否异常结束的标记
+        mWorkCount = SharedPreferencesUtils.getWorkCount();
+        SharedPreferences.Editor edit = mWorkCount.edit();
         edit.putInt("comWorkCount",0);
         edit.apply();
 
@@ -774,12 +775,20 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                             currentState = 24;
                             int i = Integer.parseInt(mRoutineWorkNumbwe, 16);
                             SendUtil.setRoutineNumber(i + 1);
+                            //每次记录次数的时候,记录次数的状态设置为1
+                            SharedPreferences.Editor edit = mWorkCount.edit();
+                            edit.putInt("workcount",1);
+                            edit.apply();
                         }
                     } else {
                         if (mIsSaveCount) {
                             currentState = 24;
                             int i = Integer.parseInt(mDepthWorkNumbwe, 16);
                             SendUtil.setDepthNumber(i + 1);
+                            //每次记录次数的时候,记录次数的状态设置为1
+                            SharedPreferences.Editor edit = mWorkCount.edit();
+                            edit.putInt("workcount",1);
+                            edit.apply();
                         }
                     }
                 }
@@ -1408,6 +1417,10 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                     //记录一次次数
                                     int i = Integer.parseInt(mRoutineWorkNumbwe, 16);
                                     SendUtil.setRoutineNumber(i + 1);
+                                    //每次记录次数的时候,记录次数的状态设置为1
+                                    SharedPreferences.Editor edit = mWorkCount.edit();
+                                    edit.putInt("workcount",1);
+                                    edit.apply();
                                 }
                             }
                             if (totalTimecou == 0 && mKeepTime == 0) {
@@ -1450,6 +1463,10 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                     //记录一次次数
                                     int i = Integer.parseInt(mDepthWorkNumbwe, 16);
                                     SendUtil.setDepthNumber(i + 1);
+                                    //每次记录次数的时候,记录次数的状态设置为1
+                                    SharedPreferences.Editor edit = mWorkCount.edit();
+                                    edit.putInt("workcount",1);
+                                    edit.apply();
                                 }
                             }
                             if (depthTotalTimeCou == 0 && mKeepTime == 0) {
@@ -1829,11 +1846,11 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
         //if (isUpdataChangeNumber)
         mAddNumbwe = DataUtil.getAddNumbwe(buffer) * 10;
         //常规模式第一阶段臭氧和雾化共同运行时间
-        mRoutineOzoneRunTime = DataUtil.getRoutineOzoneRunTime(buffer);
+        mRoutineOzoneRunTime = 4;//DataUtil.getRoutineOzoneRunTime(buffer);
         //常规模式第二阶段雾化运行时间
-        mRoutineTwoRunTime = DataUtil.getRoutineTwoRunTime(buffer);
+        mRoutineTwoRunTime = 2;//DataUtil.getRoutineTwoRunTime(buffer);
         //常规模式第三阶段净化运行时间
-        mRoutineThreeRunTime = DataUtil.getRoutineThreeRunTime(buffer);
+        mRoutineThreeRunTime = 1;//DataUtil.getRoutineThreeRunTime(buffer);
         totalTime = mRoutineOzoneRunTime + mRoutineThreeRunTime;
 
         //深度模式第一阶段雾化运行时间 2019年3月12日17:32:44修改单独设置臭氧,雾化,净化时间
@@ -1857,6 +1874,10 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                 //记录一次次数
                                 int i = Integer.parseInt(mRoutineWorkNumbwe, 16);
                                 SendUtil.setRoutineNumber(i + 1);
+                                //每次记录次数的时候,记录次数的状态设置为1
+                                SharedPreferences.Editor edit = mWorkCount.edit();
+                                edit.putInt("workcount",1);
+                                edit.apply();
                             }
                         } else {
                             if (mIsSaveCount) {
@@ -1864,6 +1885,10 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                 //记录一次次数
                                 int i = Integer.parseInt(mDepthWorkNumbwe, 16);
                                 SendUtil.setDepthNumber(i + 1);
+                                //每次记录次数的时候,记录次数的状态设置为1
+                                SharedPreferences.Editor edit = mWorkCount.edit();
+                                edit.putInt("workcount",1);
+                                edit.apply();
                             }
                         }
                         //删除记录次数的文件

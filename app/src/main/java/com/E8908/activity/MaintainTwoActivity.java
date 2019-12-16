@@ -46,6 +46,7 @@ public class MaintainTwoActivity extends BaseActivity implements View.OnTouchLis
     private boolean mIsRoutine;
     private boolean mIsYesData = false;
     private String mEquipmentNumber;
+    private String mUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,7 @@ public class MaintainTwoActivity extends BaseActivity implements View.OnTouchLis
         setContentView(R.layout.activity_maintain_one);
         ButterKnife.bind(this);
         mIsRoutine = getIntent().getBooleanExtra("isRoutine", false);
+        mUserID = getIntent().getStringExtra("userID");
         initData();
     }
 
@@ -217,6 +219,7 @@ public class MaintainTwoActivity extends BaseActivity implements View.OnTouchLis
                 Intent intent = new Intent(this, MaintainThreeReadActivityDemo.class);
                 intent.putExtra("isRoutine", mIsRoutine);
                 intent.putExtra("equipmentId", mEquipmentNumber);
+                intent.putExtra("userID", mUserID);
                 startActivity(intent);
             }
         }

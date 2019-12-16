@@ -194,9 +194,9 @@ public class DataUtil {
         String state = getState(array);
         String substring = state.substring(0, 1);
         if ("1".equals(substring)){
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
     /**
      * 获取激活状态

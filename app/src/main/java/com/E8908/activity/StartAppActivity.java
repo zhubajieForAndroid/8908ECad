@@ -2,6 +2,7 @@ package com.E8908.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -15,7 +16,10 @@ import java.util.TimerTask;
 
 public class StartAppActivity extends BaseActivity {
 
+    private static final String TAG = "StartAppActivity";
     private Timer mTimer;
+    private String mLogName;
+    private String mUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,13 +27,15 @@ public class StartAppActivity extends BaseActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);// 隐藏标题
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);// 设置全屏
         setContentView(R.layout.activity_start_page);
+        mLogName = getIntent().getStringExtra("logName");
+        mUserId = getIntent().getStringExtra("userId");
 
         Intent intent = new Intent("tyzc.SHOW");
         intent.putExtra("mode", false);
         sendBroadcast(intent);
 
         mTimer = new Timer();
-        mTimer.schedule(startTask, 500);
+        mTimer.schedule(startTask, 1000);
         MyApplication.initSerialPort();
     }
 
@@ -57,6 +63,8 @@ public class StartAppActivity extends BaseActivity {
         @Override
         public void run() {
             Intent intent = new Intent(StartAppActivity.this, StartAppTwoActivity.class);
+            intent.putExtra("name",mLogName);
+            intent.putExtra("userId",mUserId);
             startActivity(intent);
             finish();
         }

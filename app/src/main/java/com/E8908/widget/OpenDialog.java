@@ -47,6 +47,7 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
     private ImageView mEr_iv;
     private OnOpenListener mOnOpenListener;
     private String id;
+    private String mUserID;
     private ReservationCodeDialog mDialog;
     private LinearLayout mLinearLayout;
     private OnCancelButtonListener mOnCancelButtonListener;
@@ -62,7 +63,7 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
 
     }
 
-    public void setinit(String equipmentNumber) {
+    public void setinit(String equipmentNumber, String userID) {
         setContentView(R.layout.view_open);
         mWindow = getWindow();
         WindowManager.LayoutParams lp = mWindow.getAttributes();
@@ -73,6 +74,8 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
         setCanceledOnTouchOutside(false);
 
         id = equipmentNumber;
+        mUserID = userID;
+
         mEr_iv = findViewById(R.id.qr_iv);
         mDialog = new ReservationCodeDialog(mContext, R.style.dialog);
         mDialog.setOnLoninnListener(this);
@@ -81,7 +84,7 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
         mOkhttpManager = OkhttpManager.getOkhttpManager();
 
         //生成二维码
-        Bitmap bitmap = BItmapUtil.createQRCodeBitmap(equipmentNumber+"&8908E", 400, 400,
+        Bitmap bitmap = BItmapUtil.createQRCodeBitmap(equipmentNumber + "&8908E", 400, 400,
                 "UTF-8", "H", "1", Color.BLACK, Color.WHITE);
         if (bitmap != null)
             mEr_iv.setImageBitmap(bitmap);
@@ -99,6 +102,9 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
         Map<String, String> pames = new HashMap<>();
         pames.put("deviceno", id + "");
         pames.put("codeValue", reservationCode + "");
+        if (!TextUtils.isEmpty(mUserID))
+            pames.put("staffPk", mUserID);
+
         mOkhttpManager.doPost(Constants.URLS.CHECK_VINCODE, pames, mCallback);
 
     }
@@ -121,7 +127,6 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
         public void onResponse(Call call, Response response) throws IOException {
             if (response.isSuccessful()) {
                 String string = response.body().string();
-                Log.d(TAG, "onResponse: "+string);
                 try {
                     JSONObject jsonObject = new JSONObject(string);
                     int errno = jsonObject.getInt("code");
@@ -171,7 +176,7 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.cancle_btn:                       //取消
                 mOnCancelButtonListener.onCancelClick();
                 dismiss();
@@ -219,7 +224,6 @@ public class OpenDialog extends Dialog implements ReservationCodeDialog.OnLonInL
     public void onDismiss(DialogInterface dialog) {
         stopTask();
     }
-
 
 
     public interface OnOpenListener {

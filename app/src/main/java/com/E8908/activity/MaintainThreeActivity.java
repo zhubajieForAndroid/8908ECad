@@ -69,7 +69,10 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
     private int mVersionState = 1;              //默认是4S配置
     private boolean isQueryVersion = true;          //是否查询版本信息
     private boolean isQueryVersionState = false;    //是否读取到版本信息
-    private int mComWorkCount;              //工作完成时保存的次数
+    private int mComWorkCount;              //运行状态的标记
+    private int mWorkcount;                 //是否记录次数的标记
+    private SharedPreferences mWorkCountSp;
+    private String mUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +86,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         mBleDeviceMac = intent.getStringExtra("BleDeviceMac");
         mEquipmentID = intent.getStringExtra("equipmentID");
         mCarNumber = intent.getStringExtra("carNumber");
+        mUserID = intent.getStringExtra("userID");
 
 
         mOpenDialog = new OpenDialog(this, R.style.dialog);
@@ -126,8 +130,10 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         mBgTouch.setImageResource(R.mipmap.bg_cg_3);
 
         //读取工作完成时保存的次数
-        SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
-        mComWorkCount = workCount.getInt("comWorkCount", 1);
+        mWorkCountSp = SharedPreferencesUtils.getWorkCount();
+        mComWorkCount = mWorkCountSp.getInt("comWorkCount", 1);    //运行状态的标记
+        //是否记录次数的标记
+        mWorkcount = mWorkCountSp.getInt("workcount", 0);
 
     }
 
@@ -323,6 +329,10 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                         if (mComWorkCount == 0) {                //工作次数为初始值,说明上次工作异常结束
                             checkCount();
                         }else {
+                            //正常结束工作,初始化记录次数的状态
+                            SharedPreferences.Editor edit = mWorkCountSp.edit();
+                            edit.putInt("workcount",0);
+                            edit.apply();
                             showReadyDialog();
                         }
                     } else if (mVersionState == 1) {                         //4S点的版本
@@ -334,6 +344,10 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                             if (mComWorkCount == 0) {                //工作次数为初始值,说明上次工作异常结束
                                 checkCount();
                             }else {
+                                //正常结束工作,初始化记录次数的状态
+                                SharedPreferences.Editor edit = mWorkCountSp.edit();
+                                edit.putInt("workcount",0);
+                                edit.apply();
                                 showReadyDialog();
                             }
                         } else if (mVersionState == 1) {                         //4S点的版本
@@ -346,16 +360,24 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         return false;
     }
 
-    /**
-     * 判断次数是否一致
-     */
+
     private void checkCount() {
         IsSaveCountDialog dialog = new IsSaveCountDialog(this, R.style.dialog);
         dialog.setOnYesBtnListener(new IsSaveCountDialog.OnYesBtnListener() {
             @Override
             public void isYesBtnClick(boolean isYes) {
-                if (isYes)
-                    startActOne(false, false);
+                if (isYes) {                    //重做
+                    if (mWorkcount == 0){       //上次是否记录了次数
+                        startActOne(false, true);
+                    }else {
+                        startActOne(false, false);
+                    }
+                }else {                     //选择不重做,弹出预约码界面,并且初始化记录次数的状态
+                    SharedPreferences.Editor edit = mWorkCountSp.edit();
+                    edit.putInt("workcount",0);
+                    edit.apply();
+                    showReadyDialog();
+                }
             }
         });
         if (!dialog.isShowing())
@@ -364,7 +386,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
 
     private void showReadyDialog() {
         if (!mOpenDialog.isShowing()) {
-            mOpenDialog.setinit(mEquipmentNumber);
+            mOpenDialog.setinit(mEquipmentNumber,mUserID);
             mOpenDialog.show();
             //设置设备已经就绪
             mCurrentState = 1;

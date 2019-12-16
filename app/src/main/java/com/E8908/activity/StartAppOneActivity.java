@@ -16,6 +16,8 @@ public class StartAppOneActivity extends BaseToolBarActivity implements View.OnC
 
     @Bind(R.id.in_home)
     ImageView mInHome;
+    private String mName;
+    private String mUserId;
 
 
     @Override
@@ -23,6 +25,10 @@ public class StartAppOneActivity extends BaseToolBarActivity implements View.OnC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_app_one);
         ButterKnife.bind(this);
+
+        Intent intent = getIntent();
+        mName = intent.getStringExtra("name");
+        mUserId = intent.getStringExtra("userId");
         initData();
     }
 
@@ -53,6 +59,8 @@ public class StartAppOneActivity extends BaseToolBarActivity implements View.OnC
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("name",mName);
+        intent.putExtra("userId",mUserId);
         startActivity(intent);
         finish();
     }

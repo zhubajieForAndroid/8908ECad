@@ -507,7 +507,6 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                 break;
             case R.id.about_system_back:
                 isFinish = true;
-                SendUtil.controlVoice();
                 finish();
                 break;
             case R.id.back_oil:

@@ -66,6 +66,8 @@ public class StartAppTwoActivity extends BaseToolBarActivity implements View.OnC
     private String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.BLUETOOTH
             , Manifest.permission.BLUETOOTH_ADMIN};
+    private String mName;
+    private String mUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +83,9 @@ public class StartAppTwoActivity extends BaseToolBarActivity implements View.OnC
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);//网络状态变化
         registerReceiver(mReceiver, filter);
 
+        Intent intent = getIntent();
+        mName = intent.getStringExtra("name");
+        mUserId = intent.getStringExtra("userId");
 
         initData();
         initListener();
@@ -180,6 +185,8 @@ public class StartAppTwoActivity extends BaseToolBarActivity implements View.OnC
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(this, StartAppOneActivity.class);
+        intent.putExtra("name",mName);
+        intent.putExtra("userId",mUserId);
         startActivity(intent);
         finish();
     }

@@ -2206,6 +2206,11 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                 }
                 break;
             case R.id.btn_back:
+                //保存工作完成的次数
+                SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
+                SharedPreferences.Editor edit = workCount.edit();
+                edit.putInt("comWorkCount",5);
+                edit.apply();
                 finish();
                 break;
         }

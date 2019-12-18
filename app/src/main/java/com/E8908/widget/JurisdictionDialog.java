@@ -70,7 +70,6 @@ public class JurisdictionDialog extends Dialog implements View.OnClickListener {
                             String time = dateFormata.format(timeMillis);
                             int currentTime = Integer.parseInt(time);
                             int codeTime = Integer.parseInt(timeStr);
-
                             if ((codeTime+10) > currentTime){               //时间有效
                                 mOnCheckJListener.onCkcekState(mState,true,"验证成功");
                                 dismiss();

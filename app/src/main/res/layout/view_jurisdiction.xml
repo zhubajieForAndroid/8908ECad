@@ -64,7 +64,6 @@
         <TextView
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
-            android:text="权限码请登录毛豆养车APP -- 设备 -- 设备管理权限码获得,该码10分钟有效"
             android:textSize="22sp"
             android:textColor="#f8cd06"
             android:layout_width="wrap_content"
@@ -79,7 +78,6 @@
                 android:id="@+id/cancle"
                 android:background="@drawable/ju_btn_cancle_bg_shape"
                 android:textSize="28sp"
-                android:text="取消"
                 android:textColor="@android:color/white"
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -89,7 +87,6 @@
                 android:layout_marginLeft="30dp"
                 android:background="@drawable/ju_btn_bg_shape"
                 android:textSize="28sp"
-                android:text="确定"
                 android:textColor="@android:color/white"
                 android:layout_width="0dp"
                 android:layout_weight="1"

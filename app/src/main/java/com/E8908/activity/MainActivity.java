@@ -518,7 +518,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                             dialog.setOnBtnClickListener(this);
                             dialog.show();
                         } else {                                             //用户没有登录
-                            String title = "请员工登录后再继续操作";
+                            String title = "请技师登录后再继续操作";
                             String yesBtnStr = "是";
                             String cancleBtnStr = "否";
                             YnnLoginDialog dialog = new YnnLoginDialog(this, R.style.dialog, title, yesBtnStr, cancleBtnStr, false);
@@ -711,10 +711,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     start(false);
                 }
             } else {             //切换账号
+                //发送广播通知技师App登录
+                Intent intent = new Intent();
+                intent.setAction("loginMsgBy8908E");
+                sendBroadcast(intent);
                 finish();
             }
         } else {                 //没有登录
             if (isCancle) {      //去登录
+                //发送广播通知技师App登录
+                //发送广播通知技师App登录
+                Intent intent = new Intent();
+                intent.setAction("loginMsgBy8908E");
+                sendBroadcast(intent);
                 finish();
             }
         }

@@ -1846,11 +1846,11 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
         //if (isUpdataChangeNumber)
         mAddNumbwe = DataUtil.getAddNumbwe(buffer) * 10;
         //常规模式第一阶段臭氧和雾化共同运行时间
-        mRoutineOzoneRunTime = 4;//DataUtil.getRoutineOzoneRunTime(buffer);
+        mRoutineOzoneRunTime = DataUtil.getRoutineOzoneRunTime(buffer);
         //常规模式第二阶段雾化运行时间
-        mRoutineTwoRunTime = 2;//DataUtil.getRoutineTwoRunTime(buffer);
+        mRoutineTwoRunTime = DataUtil.getRoutineTwoRunTime(buffer);
         //常规模式第三阶段净化运行时间
-        mRoutineThreeRunTime = 1;//DataUtil.getRoutineThreeRunTime(buffer);
+        mRoutineThreeRunTime = DataUtil.getRoutineThreeRunTime(buffer);
         totalTime = mRoutineOzoneRunTime + mRoutineThreeRunTime;
 
         //深度模式第一阶段雾化运行时间 2019年3月12日17:32:44修改单独设置臭氧,雾化,净化时间

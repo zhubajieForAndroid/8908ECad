@@ -1589,7 +1589,7 @@ public class ConventionalMaintenanceActivity extends BaseActivity implements Vie
     }
 
     private void analysisData(byte[] buffer) {
-        mAdapter.setData(buffer, mIsRoutine, true);
+        mAdapter.setData(buffer, mIsRoutine, true,0);
 
         String state = DataUtil.getState(buffer);                           //状态位
         //获取液体剩余升数
@@ -1790,7 +1790,7 @@ public class ConventionalMaintenanceActivity extends BaseActivity implements Vie
             String action = intent.getAction();
             if (Constants.BLE_DATA.equals(action)) {
                 final byte[] buffer = intent.getByteArrayExtra("data");
-                mAdapter.setData(buffer, mIsRoutine, false);
+                mAdapter.setData(buffer, mIsRoutine, false,0);
             }
         }
     };

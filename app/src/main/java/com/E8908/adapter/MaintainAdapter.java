@@ -4,11 +4,14 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.E8908.widget.GasView;
 import com.E8908.widget.MaintainView;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class MaintainAdapter extends PagerAdapter implements View.OnClickListener {
     private Context mContext;
@@ -17,6 +20,7 @@ public class MaintainAdapter extends PagerAdapter implements View.OnClickListene
     private boolean misRoutine;
     private String[] title;
     private OnGasClickListener mOnGasClickListener;
+    private int mTimeCount;
 
     public MaintainAdapter(Context context, byte[] arr, byte[] buffer, boolean isRoutine, String[] titles) {
         mContext = context;
@@ -46,7 +50,7 @@ public class MaintainAdapter extends PagerAdapter implements View.OnClickListene
         View view;
         if (position == 0) {             //气体数据
             GasView gasView = new GasView(mContext);
-            gasView.setData(mBuffer, misRoutine);
+            gasView.setData(mBuffer, misRoutine,mTimeCount);
             view = gasView;
             container.addView(gasView);
         } else {                         //设备数据
@@ -64,9 +68,10 @@ public class MaintainAdapter extends PagerAdapter implements View.OnClickListene
         container.removeView((View) object);
     }
 
-    public void setData(byte[] buffer, boolean isRoutine, boolean isEquipment) {
+    public void setData(byte[] buffer, boolean isRoutine, boolean isEquipment,int countTime) {
         if (isEquipment) {       //设备数据
             mBuffer = buffer;
+            mTimeCount = countTime;
         } else {                 //气体数据
             array = buffer;
         }

@@ -511,7 +511,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 if ("1".equals(mIsProhibit)) {
                     if (mVersionState == 0) {           //当前是修理厂版本,必须用户登录
                         if (!TextUtils.isEmpty(mUserId)) {                  //用户已经登录
-                            String title = "当前登录的账号:" + mName;
+                            String title = "当前登录的技师账号:" + mName;
                             String yesBtnStr = "继续操作";
                             String cancleBtnStr = "切换账号";
                             YnnLoginDialog dialog = new YnnLoginDialog(this, R.style.dialog, title, yesBtnStr, cancleBtnStr, true);

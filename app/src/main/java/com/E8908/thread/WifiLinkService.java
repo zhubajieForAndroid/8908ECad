@@ -177,6 +177,7 @@ public class WifiLinkService extends Service {
         if (isWifiLinkState) {                       //wifi已连接
             mSocketManage = SocketManage.getSocketManage();
             mSocketManage.setOnSocketLinkListener(mOnSocketLinkListener);
+            Log.d(TAG, "pauseLinkServiceState: "+mIsWifiLinkServiceState);
             if (!"00000000".equals(mEquipmentId) && !mIsWifiLinkServiceState) {
                 //不允许下位机连接服务器了
                 SendUtil.setLinkServiceState(false);
@@ -221,11 +222,11 @@ public class WifiLinkService extends Service {
                 switch (mTempList.get(6)) {
                     case 0x07:                                              //登录命令字
                         Log.d(TAG, "onSocketReadResponse: 登录成功");
-                        SendUtil.controlVoiceLong();
                         //登录成功发送心跳
                         if (!TextUtils.isEmpty(mEquipmentId) && mSocketManage != null) {
                             mSocketManage.sendHeartbeat(new PulseData(DataUtil.getLinkData(mEquipmentId)));
                             SystemClock.sleep(500);
+                            SendUtil.controlVoiceLong();
                             //主动上报数据
                             startUpTask();
                         }
@@ -305,7 +306,6 @@ public class WifiLinkService extends Service {
                         }
                         break;
                     case 3:                         //设置常规和自定义的时间   3 2 1
-
                         //0x2A,0x17,0x00,0x02,0x03,0x00,0x03,0x00,0x17,0x01,0x14,
                         //0x65,0x65,0x66,0x73,0x24,0x54,
                         // 0x41,0x35,0x34,0x33,0x32,0x31,

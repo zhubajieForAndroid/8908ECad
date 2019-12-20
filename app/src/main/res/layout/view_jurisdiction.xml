@@ -75,6 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <Button
+                android:text="取消"
                 android:id="@+id/cancle"
                 android:background="@drawable/ju_btn_cancle_bg_shape"
                 android:textSize="28sp"
@@ -83,6 +84,7 @@
                 android:layout_weight="1"
                 android:layout_height="60dp"/>
             <Button
+                android:text="确定"
                 android:id="@+id/ckeck"
                 android:layout_marginLeft="30dp"
                 android:background="@drawable/ju_btn_bg_shape"

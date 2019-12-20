@@ -11,15 +11,21 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+        <ImageView
+            android:layout_gravity="center"
+            android:src="@mipmap/bluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
         <Button
+            android:layout_marginTop="20dp"
             android:id="@+id/start_link"
             android:layout_gravity="center"
-            android:paddingStart="25dp"
-            android:paddingEnd="25dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
             android:textColor="@color/white"
-            android:textSize="28sp"
+            android:textSize="26sp"
             android:text="连接蓝牙气体检测仪"
             android:background="@drawable/select_key_shape"
             android:layout_width="wrap_content"

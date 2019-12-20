@@ -249,7 +249,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
                 mOpenDialog.dismiss();
             }
             SystemClock.sleep(500);
-            Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo4.class);
+            Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo5.class);
             intent.putExtra("isRoutine", mIsRoutine);
             intent.putExtra("isStart", true);
             intent.putExtra("pk", mPk);
@@ -438,7 +438,7 @@ public class MaintainThreeActivity extends BaseActivity implements View.OnTouchL
         Intent brd = new Intent();
         brd.setAction(Constants.ACTIVITY_STATE);
         sendBroadcast(brd);
-        Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo4.class);
+        Intent intent = new Intent(this, ConventionalMaintenanceActivityDemo5.class);
         intent.putExtra("isRoutine", mIsRoutine);
         intent.putExtra("isStart", b);          //自启动
         intent.putExtra("pk", mPk);

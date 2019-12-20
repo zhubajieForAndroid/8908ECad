@@ -66,10 +66,32 @@
         android:text="0次"
         android:textColor="#ffffff"
         android:textSize="24px"/>
+    <TextView
+        android:id="@+id/total_number_of_work_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/total_number_of_work"
+        android:layout_marginBottom="@dimen/y22"
+        android:layout_marginLeft="@dimen/x24"
+        android:layout_marginTop="@dimen/y22"
+        android:text="工作总时间"
+        android:textColor="#ffffff"
+        android:textSize="24px"/>
+    <TextView
+        android:id="@+id/total_number_of_work_value_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/total_number_of_work"
+        android:layout_marginRight="@dimen/x26"
+        android:layout_marginTop="@dimen/y22"
+        android:text="0 H"
+        android:textColor="#ffffff"
+        android:textSize="24px"/>
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/total_number_of_work_value"
+        android:layout_below="@+id/total_number_of_work_time"
         android:layout_marginLeft="@dimen/x24"
         android:layout_marginTop="@dimen/y22">
         <TextView

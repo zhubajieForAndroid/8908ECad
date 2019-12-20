@@ -94,5 +94,10 @@ public class Constants {
 
         //上传本次加注量
         public static final String UPDATA_ADD_NUMBER = HOST +"/weixin/materielExpendRecordService/addMaterielExpendRecord";
+
+        //获取设备的总工作时间
+        public static final String GET_WORK_TIME = HOST +"/weixin/manage/queryTotalWorkingTimes";
+        //上传设备的总工作时间
+        public static final String UPLOAD_WORK_TIME = HOST +"/weixin/manage/saveEqumentWorkingTime";
     }
 }

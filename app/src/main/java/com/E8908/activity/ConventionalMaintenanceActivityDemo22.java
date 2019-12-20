@@ -1780,7 +1780,7 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
     }
 
     private void analysisData(byte[] buffer) {
-        mAdapter.setData(buffer, mIsRoutine, true);
+        mAdapter.setData(buffer, mIsRoutine, true,0);
 
         String state = DataUtil.getState(buffer);                           //状态位
         //获取液体剩余升数
@@ -1993,7 +1993,7 @@ public class ConventionalMaintenanceActivityDemo22 extends BaseActivity implemen
                 boolean isLinkBle = intent.getBooleanExtra("isLinkBle", false);
                 if (isLinkBle) {
                     final byte[] buffer = intent.getByteArrayExtra("data");
-                    mAdapter.setData(buffer, mIsRoutine, false);
+                    mAdapter.setData(buffer, mIsRoutine, false,0);
                 }
             }
         }

@@ -1447,7 +1447,7 @@ public class ConventionalMaintenanceActivityDemo extends BaseActivity implements
     }
 
     private void analysisData(byte[] buffer) {
-        mAdapter.setData(buffer,mIsRoutine,true);
+        mAdapter.setData(buffer,mIsRoutine,true,0);
         //int electricPress = DataUtil.directElectricPress(buffer);      //直流电压
         //float communionFlow = DataUtil.directCommunionFlow(buffer);       //交流电流
         String state = DataUtil.getState(buffer);                           //状态位

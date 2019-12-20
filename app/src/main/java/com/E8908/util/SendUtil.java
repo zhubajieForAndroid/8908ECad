@@ -525,6 +525,9 @@ public class SendUtil {
             case 57:
                 result = 9;
                 break;
+            case 64:
+                result = 10;
+                break;
             case 65:
                 result = 11;
                 break;

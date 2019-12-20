@@ -9,8 +9,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -19,18 +17,13 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.E8908.R;
-import com.E8908.adapter.HomeVideoPagerAdapter;
 import com.E8908.adapter.MaintainAdapter;
 import com.E8908.adapter.RunVideoPagerAdapter;
 import com.E8908.base.BaseActivity;
@@ -41,6 +34,7 @@ import com.E8908.util.DataUtil;
 import com.E8908.util.SendUtil;
 import com.E8908.util.SharedPreferencesUtils;
 import com.E8908.util.StringUtils;
+import com.E8908.util.UpLoadTimeUtils;
 import com.E8908.widget.AddErrorDialog;
 import com.E8908.widget.BackErrorDialog;
 import com.E8908.widget.BitmapUtil;
@@ -49,6 +43,9 @@ import com.E8908.widget.GasDialog;
 import com.E8908.widget.LinkErrorDialog;
 import com.E8908.widget.StopDialog;
 import com.E8908.widget.ToastUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -62,12 +59,16 @@ import java.util.TimerTask;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import me.zhouzhuo.zzhorizontalprogressbar.ZzHorizontalProgressBar;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * 自定义模式,常规2019年4月22日20:14:32 修改 回收成功标记(电子秤数值没变化并且回收大于300ML) 根据标记判断是否跳过第一次的回收
  * 添加通讯断开弹窗
  */
-public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implements View.OnClickListener, DialogInterface.OnDismissListener, BackErrorDialog.OnBackClickListener, ViewPager.OnPageChangeListener {
+public class ConventionalMaintenanceActivityDemo5 extends BaseActivity implements View.OnClickListener, DialogInterface.OnDismissListener, BackErrorDialog.OnBackClickListener, ViewPager.OnPageChangeListener {
     private static final String TAG = "MaintenanceActivity";
     @Bind(R.id.battery_state)
     ImageView mBatteryState;
@@ -271,6 +272,9 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
     private RunVideoPagerAdapter mHomeVideoPagerAdapter;
     private boolean mIsSaveCount;
     private SharedPreferences mWorkCount;
+    private String mEquipmentNumber;
+    private  boolean isLoadData = true;
+    private int mResultCount;
 
 
     @Override
@@ -315,7 +319,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
         //初始化是否异常结束的标记
         mWorkCount = SharedPreferencesUtils.getWorkCount();
         SharedPreferences.Editor edit = mWorkCount.edit();
-        edit.putInt("comWorkCount",0);
+        edit.putInt("comWorkCount", 0);
         edit.apply();
 
         initListener();
@@ -511,10 +515,10 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                             SendUtil.setWorkState(64);
                         }
                     } else {
-                        mConvertionalTextviewTitle.setText("正在进行爱车室内环境综合治理");
+                        mConvertionalTextviewTitle.setText("正在为爱车清洗杀菌消毒");
                         currentState = 31;
                         //设置工作状态为正在雾化
-                        SendUtil.setWorkState(16);
+                        SendUtil.setWorkState(80);
                     }
                 }
                 break;
@@ -523,7 +527,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     if (mIsRoutine) {
                         startOneTask(mRoutineTwoRunTime);
                     } else {
-                        startOneTask(mDepthOneRunTime);    //臭氧运行时间
+                        startOneTask(mDepthTwoRunTime);    //臭氧运行时间
                     }
                 } else {
                     if (mTemperature >= 0) {
@@ -542,7 +546,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     if (mIsRoutine) {
                         startOneTask(mRoutineTwoRunTime);
                     } else {
-                        startOneTask(mDepthOneRunTime);
+                        startOneTask(mDepthTwoRunTime);
                     }
                 } else {
                     currentState = 31;
@@ -565,13 +569,11 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     mProgressTvTwo.setVisibility(View.GONE);
                     if (mIsRoutine) {
                         mConvertionalTextviewTitle.setText("正在进行爱车室内环境综合治理");
-                        currentState = 15;
-                        SendUtil.setWorkState(16);
                     } else {
-                        mConvertionalTextviewTitle.setText("正在为爱车杀菌消毒");
-                        currentState = 32;
-                        SendUtil.setWorkState(64);
+                        mConvertionalTextviewTitle.setText("正在进行爱车室内环境综合治理");
                     }
+                    currentState = 15;
+                    SendUtil.setWorkState(16);
 
                 }
                 break;
@@ -587,7 +589,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     SendUtil.setWorkState(16);
                 }
                 break;
-            case 32:
+            /*case 32:
                 if (isSuccess) {
                     if (mIsRoutine) {
                         startTwoTask();
@@ -596,9 +598,9 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     }
                 } else {
                     currentState = 15;
-                    SendUtil.setWorkState(64);
+                    SendUtil.setWorkState(16);
                 }
-                break;
+                break;*/
             case 8:
                 if (isSuccess) {             //关闭7#8#成功
                     SystemClock.sleep(100);
@@ -669,7 +671,6 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                 break;
             case 13:
                 if (isSuccess) {
-
                     mConvertionalTextviewTitle.setText("养护完成");
                     mConvertionalTextviewProgress.setVisibility(View.GONE);
                     mBai.setVisibility(View.GONE);
@@ -729,9 +730,16 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     int i = Integer.parseInt(mRoutineWorkNumbwe, 16);
                     SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
                     SharedPreferences.Editor edit = workCount.edit();
-                    edit.putInt("comWorkCount",i);
+                    edit.putInt("comWorkCount", i);
                     edit.apply();
-                    Log.d(TAG, "setResultData: 保存了次数"+i);
+                    int resultTime;
+                    if (mIsRoutine){
+                        resultTime= totalTime - mKeepTime;
+                    }else {
+                        resultTime= depthTotalTime - mKeepTime;
+                    }
+                    Log.d(TAG, "isMakeUser: "+resultTime);
+                    UpLoadTimeUtils.upLoadTimer(mEquipmentNumber,resultTime+"");
                 } else {
                     currentState = 13;
                     SendUtil.setWorkState(0);
@@ -777,7 +785,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                             SendUtil.setRoutineNumber(i + 1);
                             //每次记录次数的时候,记录次数的状态设置为1
                             SharedPreferences.Editor edit = mWorkCount.edit();
-                            edit.putInt("workcount",1);
+                            edit.putInt("workcount", 1);
                             edit.apply();
                         }
                     } else {
@@ -787,7 +795,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                             SendUtil.setDepthNumber(i + 1);
                             //每次记录次数的时候,记录次数的状态设置为1
                             SharedPreferences.Editor edit = mWorkCount.edit();
-                            edit.putInt("workcount",1);
+                            edit.putInt("workcount", 1);
                             edit.apply();
                         }
                     }
@@ -802,7 +810,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     if (mIsRoutine) {            //常规保养模式
                         startOneTask(mRoutineTwoRunTime);
                     } else {                     //深度保养模式
-                        startOneTask(mDepthOneRunTime);
+                        startOneTask(mDepthTwoRunTime);
                     }
                     mBtnStart.setImageResource(R.mipmap.btn_pause_normal);
                 } else {
@@ -973,19 +981,18 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                         SendUtil.open7();
                     }
                 }
-
             }
         } else {                     //深度
-            if (mDepthOneRunTime == 0) {                //开启臭氧5
+            if (mDepthOneRunTime == 0) {                //开启净化,臭氧和雾化的共同时间为0直接净化
                 currentState = 7;
                 SendUtil.open7();
-            } else if (mDepthTwoRunTime == 0) {          //开启雾化0
-                if (!"1".equals(mTemperatureStateStr)) {              //温度传感器异常
-                    currentState = 6;
+            } else if (mDepthTwoRunTime == 0) {          //臭氧时间为0,开启雾化
+                if ("1".equals(mTemperatureStateStr)) {              //温度传感器异常
+                    currentState = 29;
                     SendUtil.open8();
                 } else {
                     if (mTemperature >= 0) {
-                        currentState = 6;
+                        currentState = 29;
                         SendUtil.open8();
                     } else {
                         ToastUtil.showMessageLong("当前环境温度低于0度,无法进行雾化");
@@ -993,19 +1000,22 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                         SendUtil.open7();
                     }
                 }
-            } else {                 //时间都有,先进行雾化,臭氧,净化2
+            } else {                 //时间都有
                 if ("1".equals(mTemperatureStateStr)) {              //温度传感器异常
                     currentState = 6;
                     SendUtil.open8();
                 } else {
                     if (mTemperature >= 0) {
+                        /*currentState = 6;
+                        SendUtil.open8();*/
                         currentState = 6;
-                        SendUtil.open8();
+                        SendUtil.open7And8();
                     } else {
                         ToastUtil.showMessageLong("当前环境温度低于0度,无法进行雾化");
                         currentState = 7;
                         SendUtil.open7();
                     }
+
                 }
             }
         }
@@ -1072,7 +1082,6 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
     }
 
 
-
     /**
      * 第一阶段的任务
      */
@@ -1111,8 +1120,10 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                         } else {
                             //进入第二阶段,开启臭氧
                             currentState = 7;
-                            SendUtil.open7();
+                            //SendUtil.open7();
+                            SendUtil.open8();
                         }
+
                     }
 
                 }
@@ -1181,7 +1192,11 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                         oneRecordTwoTimeSecond = mRoutineTwoRunTime * 60;
                     }
                 } else {
-                    result = mDepthTwoRunTime * 60;
+                    result = mDepthOneRunTime * 60;
+                    if (mIsData) {
+                        mIsData = false;
+                        oneRecordTwoTimeSecond = mRoutineTwoRunTime * 60;
+                    }
                 }
                 if (oneRecordTwoTimeSecond >= result) {          //第二阶段雾化运行时间到
                     if (mIsRoutine) {
@@ -1419,7 +1434,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                     SendUtil.setRoutineNumber(i + 1);
                                     //每次记录次数的时候,记录次数的状态设置为1
                                     SharedPreferences.Editor edit = mWorkCount.edit();
-                                    edit.putInt("workcount",1);
+                                    edit.putInt("workcount", 1);
                                     edit.apply();
                                 }
                             }
@@ -1436,6 +1451,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                 mConvertionalTextviewProgress.setText("100");
                             }
                         } else {
+
                             if (depthTotalTimeCou == 0) {
                                 if (mBoolean) {
                                     mBoolean = false;
@@ -1465,7 +1481,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                     SendUtil.setDepthNumber(i + 1);
                                     //每次记录次数的时候,记录次数的状态设置为1
                                     SharedPreferences.Editor edit = mWorkCount.edit();
-                                    edit.putInt("workcount",1);
+                                    edit.putInt("workcount", 1);
                                     edit.apply();
                                 }
                             }
@@ -1824,12 +1840,14 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
             }
             pauseProgressTask();            //暂停进度
             pauseRecordTime();              //暂停时间
+            //更新头部标记
+            mTemperatureState.setText("- -");
         }
         isYesData = false;
     }
 
     private void analysisData(byte[] buffer) {
-        mAdapter.setData(buffer, mIsRoutine, true,0);
+        mAdapter.setData(buffer, mIsRoutine, true,mResultCount);
 
         String state = DataUtil.getState(buffer);                           //状态位
         //获取液体剩余升数
@@ -1858,7 +1876,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
         mDepthTwoRunTime = DataUtil.getDepthTwoRunTime(buffer);
         //深度模式第三阶段净化运行时间
         mDepthThreeRunTime = DataUtil.getDepthThreeRunTime(buffer);
-        depthTotalTime = mDepthOneRunTime + mDepthThreeRunTime + mDepthTwoRunTime;
+        depthTotalTime = mDepthOneRunTime + mDepthThreeRunTime ;
         if (isDiaplayTime) {
             isDiaplayTime = false;
             try {
@@ -1875,7 +1893,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                 SendUtil.setRoutineNumber(i + 1);
                                 //每次记录次数的时候,记录次数的状态设置为1
                                 SharedPreferences.Editor edit = mWorkCount.edit();
-                                edit.putInt("workcount",1);
+                                edit.putInt("workcount", 1);
                                 edit.apply();
                             }
                         } else {
@@ -1886,7 +1904,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                                 SendUtil.setDepthNumber(i + 1);
                                 //每次记录次数的时候,记录次数的状态设置为1
                                 SharedPreferences.Editor edit = mWorkCount.edit();
-                                edit.putInt("workcount",1);
+                                edit.putInt("workcount", 1);
                                 edit.apply();
                             }
                         }
@@ -1925,6 +1943,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
             BitmapUtil.numberToBItmapBlaueSix(Integer.parseInt(depthWorkNumbwe, 16), mConventionalImageBlue6, mConventionalImageBlue5, mConventionalImageBlue4,
                     mConventionalImageBlue3, mConventionalImageBlue2, mConventionalImageBlue);
         }
+        mEquipmentNumber = DataUtil.getEquipmentNumber(buffer);
         String connectServerState = state.substring(3, 4);                  //连接服务器状态
         String activationState = state.substring(4, 5);                     //设备激活状态
         String lockState = state.substring(5, 6);                           //设备锁定状态
@@ -1987,8 +2006,36 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                     break;
             }
         }
+        String equipmentNumber = DataUtil.getEquipmentNumber(buffer);
+        if (!TextUtils.isEmpty(equipmentNumber) && isLoadData) {
+            isLoadData = false;
+            //请求工作总时间
+            UpLoadTimeUtils.loadData(equipmentNumber,mCallback);
+        }
     }
+    private Callback mCallback = new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {}
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            if (response.isSuccessful()){
+                ResponseBody body = response.body();
+                if (body != null){
+                    String result = body.string();
+                    try {
+                        JSONObject jsonObject = new JSONObject(result);
+                        int code = jsonObject.getInt("code");
+                        if (code == 0){
+                            mResultCount = jsonObject.getInt("response");
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
 
+            }
+        }
+    };
     private void initData() {
         if (mIsRoutine) {
             mToobarBgImage.setImageResource(R.mipmap.top_bar_1);
@@ -2014,7 +2061,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
         mAdapter.setOnGasClickListener(new MaintainAdapter.OnGasClickListener() {
             @Override
             public void onGasClick() {
-                GasDialog mGasDialog = new GasDialog(ConventionalMaintenanceActivityDemo4.this, R.style.dialog);
+                GasDialog mGasDialog = new GasDialog(ConventionalMaintenanceActivityDemo5.this, R.style.dialog);
                 if (!mGasDialog.isShowing()) {
                     mGasDialog.show();
                 }
@@ -2053,7 +2100,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                 boolean isLinkBle = intent.getBooleanExtra("isLinkBle", false);
                 if (isLinkBle) {
                     final byte[] buffer = intent.getByteArrayExtra("data");
-                    mAdapter.setData(buffer, mIsRoutine, false,0);
+                    mAdapter.setData(buffer, mIsRoutine, false,mResultCount);
                 }
             }
         }
@@ -2186,13 +2233,20 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                         @Override
                         public void isMakeUser(boolean b) {
                             if (b) {
-                                //保存工作完成的次数
+                                //保存工作完成的次数,上传工作时间
                                 int i = Integer.parseInt(mRoutineWorkNumbwe, 16);
                                 SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
                                 SharedPreferences.Editor edit = workCount.edit();
-                                edit.putInt("comWorkCount",i);
+                                edit.putInt("comWorkCount", i);
                                 edit.apply();
-                                Log.d(TAG, "isMakeUser: 保存了次数"+i);
+                                int resultTime;
+                                if (mIsRoutine){
+                                    resultTime= totalTime - mKeepTime;
+                                }else {
+                                    resultTime= depthTotalTime - mKeepTime;
+                                }
+                                Log.d(TAG, "isMakeUser: "+resultTime);
+                                UpLoadTimeUtils.upLoadTimer(mEquipmentNumber,resultTime+"");
                                 if (mHomeVideoPagerAdapter != null)
                                     mHomeVideoPagerAdapter.stopPlay();
                                 currentState = 18;
@@ -2208,7 +2262,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
                 //保存工作完成的次数
                 SharedPreferences workCount = SharedPreferencesUtils.getWorkCount();
                 SharedPreferences.Editor edit = workCount.edit();
-                edit.putInt("comWorkCount",5);
+                edit.putInt("comWorkCount", 5);
                 edit.apply();
                 finish();
                 break;
@@ -2250,6 +2304,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
             }
         }
     };
+
     //动态添加videoPager的指示器
     private void addVideoIndicator(int videoCount) {
         for (int i = 0; i < videoCount; i++) {
@@ -2265,6 +2320,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
             mIndicatorContainer.addView(view);
         }
     }
+
     @Override
     public void onPageScrolled(int i, float v, int i1) {
 
@@ -2285,6 +2341,7 @@ public class ConventionalMaintenanceActivityDemo4 extends BaseActivity implement
     public void onPageScrollStateChanged(int i) {
 
     }
+
     /*消失弹窗倒计时结束*/
     @Override
     protected void onDestroy() {

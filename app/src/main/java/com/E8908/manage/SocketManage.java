@@ -113,6 +113,7 @@ public class SocketManage {
      */
     public void connect() {
         if (mManager != null && !mManager.isConnect()) {
+            Log.d(TAG, "connect: 连接服务器了");
             if (mLinkServiceRunnable == null)
                 mLinkServiceRunnable = new LinkServiceRunnable();
             ThreadPoolProxyFactory.getmThreadPoolProxy().submit(mLinkServiceRunnable);

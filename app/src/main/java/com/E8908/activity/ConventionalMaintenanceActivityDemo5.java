@@ -1094,6 +1094,7 @@ public class ConventionalMaintenanceActivityDemo5 extends BaseActivity implement
 
         @Override
         public void run() {
+            Log.d(TAG, "run: 第一阶段");
             if (controlOneTaskState) {
                 isStartingOne = true;
                 if (oneRecordTimeSecond >= (mTime * 60)) {          //第一阶段雾化和臭氧运行时间到
@@ -1123,9 +1124,7 @@ public class ConventionalMaintenanceActivityDemo5 extends BaseActivity implement
                             //SendUtil.open7();
                             SendUtil.open8();
                         }
-
                     }
-
                 }
                 oneRecordTimeSecond++;
             }
@@ -1195,7 +1194,7 @@ public class ConventionalMaintenanceActivityDemo5 extends BaseActivity implement
                     result = mDepthOneRunTime * 60;
                     if (mIsData) {
                         mIsData = false;
-                        oneRecordTwoTimeSecond = mRoutineTwoRunTime * 60;
+                        oneRecordTwoTimeSecond = mDepthTwoRunTime * 60;
                     }
                 }
                 if (oneRecordTwoTimeSecond >= result) {          //第二阶段雾化运行时间到

@@ -584,7 +584,6 @@ public class WifiLinkService extends Service {
                 stateOne = 3;
             }
 
-
             //获取状态2
             int stateTwo = getEquipment();
             //获取状态3
@@ -616,7 +615,6 @@ public class WifiLinkService extends Service {
                 startUpTask();
             }
         }
-
     }
 
     private void regWifi() {

@@ -720,7 +720,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         } else {                 //没有登录
             if (isCancle) {      //去登录
                 //发送广播通知技师App登录
-                //发送广播通知技师App登录
                 Intent intent = new Intent();
                 intent.setAction("loginMsgBy8908E");
                 sendBroadcast(intent);
@@ -730,6 +729,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private void start(final boolean isChanggui) {
+            SendUtil.closeAll();
             if (mResultRatioNumbwe < 20500) {
                 if (mResultRatioNumbwe > 1000) {    //检测药液量是否大于1000ML
                     boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
@@ -757,7 +757,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                             if (b) {
                                 mStopDialog.dismiss();
                                 if (mResultRatioNumbwe > 1000) {
-                                    SendUtil.controlVoice();
                                     boolean isJump = mJumpStateInfo.getBoolean("isJump", false);
                                     if (isJump) {                //跳过了第一二步骤
                                         mIntent = new Intent(MainActivity.this, MaintainThreeReadActivityDemo.class);

@@ -177,16 +177,15 @@ public class WifiLinkService extends Service {
         if (isWifiLinkState) {                       //wifi已连接
             mSocketManage = SocketManage.getSocketManage();
             mSocketManage.setOnSocketLinkListener(mOnSocketLinkListener);
-            Log.d(TAG, "pauseLinkServiceState: "+mIsWifiLinkServiceState);
             if (!"00000000".equals(mEquipmentId) && !mIsWifiLinkServiceState) {
                 //不允许下位机连接服务器了
                 SendUtil.setLinkServiceState(false);
                 mSocketManage.connect();
             }
         } else {                                     //wifi未连接
-            //允许下位机连接服务器了
-            SendUtil.setLinkServiceState(true);
             if (mSocketManage != null && mIsWifiLinkServiceState) {
+                //允许下位机连接服务器了
+                SendUtil.setLinkServiceState(true);
                 mIsWifiLinkServiceState = false;
                 mSocketManage.getConnectionManager().disconnect();
             }

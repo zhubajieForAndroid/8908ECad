@@ -339,8 +339,8 @@ public class SystemSettingsActivity extends BaseActivity implements View.OnClick
                 if (isSuccess) {
                     currentState = 0;
                 } else {
-                    currentState = 6;
-                    SendUtil.openQian();
+                    currentState = 7;
+                    SendUtil.openHou();
                 }
                 break;
             case 8:
